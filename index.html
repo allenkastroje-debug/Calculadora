@@ -116,10 +116,13 @@
         <details id="ranges">
           <summary>Rangos de los controles de tu coche</summary>
           <p class="hint">Cada coche tiene rangos distintos. Los valores de abajo son de ejemplo. Copia el mínimo y el máximo que ves en el menú de reglajes del juego para que los números salgan exactos.</p>
+          <div class="rng"><span class="n">Unidad de muelles</span><label>Unidad<select id="kUnit"><option value="kgf">kgf/mm</option><option value="N">N/mm</option><option value="lb">lb/in</option></select></label></div>
+          <p class="hint" id="rngSrc" hidden></p>
           <div class="rng"><span class="n">Muelles del. <span class="u" data-ut="k"></span></span><label>Mín<input type="number" id="kFmin" data-u="k" step="0.1" value="4"></label><label>Máx<input type="number" id="kFmax" data-u="k" step="0.1" value="45"></label></div>
           <div class="rng"><span class="n">Muelles tras. <span class="u" data-ut="k"></span></span><label>Mín<input type="number" id="kRmin" data-u="k" step="0.1" value="4"></label><label>Máx<input type="number" id="kRmax" data-u="k" step="0.1" value="45"></label></div>
           <div class="rng"><span class="n">Barras estab.</span><label>Mín<input type="number" id="abMin" step="0.1" value="1"></label><label>Máx<input type="number" id="abMax" step="0.1" value="65"></label></div>
-          <div class="rng"><span class="n">Altura <span class="u" data-ut="h"></span></span><label>Mín<input type="number" id="hMin" data-u="h" step="0.1" value="8"></label><label>Máx<input type="number" id="hMax" data-u="h" step="0.1" value="18"></label></div>
+          <div class="rng"><span class="n">Altura del. <span class="u" data-ut="h"></span></span><label>Mín<input type="number" id="hFmin" data-u="h" step="0.1" value="8"></label><label>Máx<input type="number" id="hFmax" data-u="h" step="0.1" value="18"></label></div>
+          <div class="rng"><span class="n">Altura tras. <span class="u" data-ut="h"></span></span><label>Mín<input type="number" id="hRmin" data-u="h" step="0.1" value="8"></label><label>Máx<input type="number" id="hRmax" data-u="h" step="0.1" value="18"></label></div>
           <div class="rng"><span class="n">Rebote</span><label>Mín<input type="number" id="rbMin" step="0.1" value="1"></label><label>Máx<input type="number" id="rbMax" step="0.1" value="20"></label></div>
           <div class="rng"><span class="n">Compresión</span><label>Mín<input type="number" id="cpMin" step="0.1" value="1"></label><label>Máx<input type="number" id="cpMax" step="0.1" value="20"></label></div>
           <div class="rng"><span class="n">Aero del. <span class="u" data-ut="w"></span></span><label>Mín<input type="number" id="aFmin" data-u="w" step="1" value="40"></label><label>Máx<input type="number" id="aFmax" data-u="w" step="1" value="140"></label></div>
@@ -146,7 +149,7 @@
   <div role="tabpanel" id="pParts" aria-labelledby="tabParts" hidden>
     <div class="garage" id="partsBox">
       <div class="stage" id="stage">
-        <svg id="carSvg" viewBox="0 0 800 400" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Silueta de un coupé deportivo. La cámara se acerca a la zona de la pieza elegida.">
+        <svg id="carSvg" viewBox="0 0 800 400" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Vista del coche. La cámara cambia a la zona de la pieza elegida.">
           <rect x="-400" y="-400" width="1600" height="1200" fill="var(--stage)"/>
           <line x1="-400" y1="330" x2="1200" y2="330" stroke="var(--line)" stroke-width="2" vector-effect="non-scaling-stroke"/>
           <ellipse cx="410" cy="334" rx="390" ry="11" fill="#000" opacity=".35"/>
@@ -169,6 +172,7 @@
           </g>
           <ellipse id="camHot" cx="0" cy="0" rx="0" ry="0" fill="none" stroke="var(--hl)" stroke-width="3" stroke-dasharray="8 6" vector-effect="non-scaling-stroke" style="opacity:0"/>
         </svg>
+        <img class="ph" id="phA" alt="" decoding="async"><img class="ph" id="phB" alt="" decoding="async">
         <div class="stageTag" id="stageTag">Sin coche elegido</div>
       </div>
       <div class="shop" id="shop"></div>

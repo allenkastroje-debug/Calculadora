@@ -12,6 +12,7 @@ Calculadora de reglajes y piezas para Forza Horizon 6. Es una página estática:
 | `data/index.json` | Lista de los coches que se cargan |
 | `data/cars/` | Un archivo `.json` por coche. `_plantilla.json` sirve de modelo |
 | `data/img/` | Tarjeta de cada coche |
+| `data/img/stage/<coche>/` | Fotos del coche que cambian de ángulo según la pieza (opcional) |
 | `data/brands/` | Logo de cada marca |
 | `manifest.webmanifest`, `sw.js`, `icons/` | Permiten instalarla en el teléfono y usarla sin conexión |
 | `borradores/` | Datos guardados que no se cargan (motores cambiados del 86) |
@@ -33,7 +34,8 @@ Importante: no funciona abriendo `index.html` desde los archivos del dispositivo
 1. Copia `data/cars/_plantilla.json` como `data/cars/marca-modelo-año.json` y rellénalo (mira `toyota-86-2013.json` como ejemplo).
 2. Añade ese nombre de archivo a la lista de `data/index.json`.
 3. Sube la tarjeta a `data/img/` y ponle la ruta en el campo `img` del coche.
-4. Si la marca es nueva, sube su logo a `data/brands/` con el nombre de la marca en minúsculas y sin acentos (`nissan.png`).
+4. Opcional: para que la pestaña Piezas muestre fotos en vez de la silueta, añade un campo `stage` al coche con una foto por ángulo (`all`, `engine`, `rear`, `fwheel`, `rwheel`, `frontend`, `wing`, `side`, `under`, `cabin`). Los ángulos que falten usan `all`.
+5. Si la marca es nueva, sube su logo a `data/brands/` con el nombre de la marca en minúsculas y sin acentos (`nissan.png`).
 
 Los nombres de archivo distinguen mayúsculas de minúsculas: `Toyota.png` no es `toyota.png`.
 

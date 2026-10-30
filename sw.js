@@ -11,6 +11,7 @@ async function precacheData(c){
       await c.put('data/cars/'+f,res.clone());
       const car=await res.json();
       if(car.img)await c.add(car.img).catch(()=>{});
+      for(const u of Object.values(car.stage||{}))await c.add(u).catch(()=>{});
       await c.add('data/brands/'+slug(car.maker)+'.png').catch(()=>{});
     }
   }catch(e){}
