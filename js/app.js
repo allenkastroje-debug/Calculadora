@@ -157,7 +157,7 @@ function compute(i){
   g.push({title:'Muelles',why:'Calculados con la masa que carga cada rueda y una frecuencia objetivo según uso y clase. Atrás un poco más duros para mantener el coche plano.',
     rows:[{l:'Rigidez',f:kCell(kF,R.kF,'f'),r:kCell(kR,R.kR,'r')}]});
   g.push({title:'Altura',why:'Baja en asfalto para bajar el centro de gravedad; alta en tierra para no tocar el suelo. Atrás ligeramente más alta da algo de rake.',
-    rows:[{l:'Altura',f:rCell(hF,R.h,'f',{t:'h'}),r:rCell(hR,R.h,'r',{t:'h'})}]});
+    rows:[{l:'Altura',f:rCell(hF,R.hF,'f',{t:'h'}),r:rCell(hR,R.hR,'r',{t:'h'})}]});
   g.push({title:'Amortiguación',why:'El rebote controla cuánto tarda el muelle en volver; la compresión, cuánto frena el golpe. Más duro cuanto más duros sean los muelles.',
     rows:[
       {l:'Rebote',f:rCell(rbF,R.rb,'f'),r:rCell(rbR,R.rb,'r')},
@@ -204,11 +204,23 @@ function compute(i){
 /* ---------- Interfaz ---------- */
 const $=id=>document.getElementById(id);
 const UNITS={metric:{w:'kg',p:'bar',k:'kgf/mm',h:'cm',s:'km/h'},imperial:{w:'lb',p:'psi',k:'lb/in',h:'in',s:'mph'}};
-let units='metric';
-const toSI=(v,t)=>units==='imperial'?v/FAC[t]:v;
-const fromSI=(v,t)=>units==='imperial'?v*FAC[t]:v;
+const KF={kgf:1,N:9.80665,lb:FAC.k},KU={kgf:'kgf/mm',N:'N/mm',lb:'lb/in'};
+let units='metric',kUnit='kgf';
+const uLab=t=>t==='k'?KU[kUnit]:UNITS[units][t];
+const toSI=(v,t)=>t==='k'?v/KF[kUnit]:(units==='imperial'?v/FAC[t]:v);
+const fromSI=(v,t)=>t==='k'?v*KF[kUnit]:(units==='imperial'?v*FAC[t]:v);
+const kRound=v=>kUnit==='lb'?Math.round(v):Math.round(v*100)/100;
+function setKUnit(nu,convert){
+  if(!KF[nu]||nu===kUnit){$('kUnit').value=kUnit;return;}
+  if(convert)document.querySelectorAll('[data-u="k"]').forEach(el=>{
+    const v=parseFloat(el.value);if(!Number.isFinite(v))return;
+    const old=kUnit;kUnit=nu;const out=v/KF[old]*KF[nu];kUnit=old;
+    el.value=String(nu==='lb'?Math.round(out):Math.round(out*100)/100);
+  });
+  kUnit=nu;$('kUnit').value=nu;refreshLabels();
+}
 const num=id=>{const v=parseFloat($(id).value);return Number.isFinite(v)?v:0};
-const FIELDS=['carName','cls','drive','weight','front','hp','tire','use','track','fd','topNow','topTarget','bal','stiff','kFmin','kFmax','kRmin','kRmax','abMin','abMax','hMin','hMax','rbMin','rbMax','cpMin','cpMax','aFmin','aFmax','aRmin','aRmax'];
+const FIELDS=['carName','cls','drive','weight','front','hp','tire','use','track','fd','topNow','topTarget','bal','stiff','kUnit','kFmin','kFmax','kRmin','kRmax','abMin','abMax','hFmin','hFmax','hRmin','hRmax','rbMin','rbMax','cpMin','cpMax','aFmin','aFmax','aRmin','aRmax'];
 
 function readInputs(){
   const rg=(a,b,t)=>[t?toSI(num(a),t):num(a),t?toSI(num(b),t):num(b)];
@@ -217,7 +229,7 @@ function readInputs(){
     weight:toSI(num('weight'),'w'),front:num('front'),hp:num('hp'),aero:$('aero').value,
     fd:num('fd'),topNow:toSI(num('topNow'),'s'),topTarget:toSI(num('topTarget'),'s'),
     bal:num('bal'),stiff:num('stiff'),
-    rng:{kF:rg('kFmin','kFmax','k'),kR:rg('kRmin','kRmax','k'),ab:rg('abMin','abMax'),h:rg('hMin','hMax','h'),
+    rng:{kF:rg('kFmin','kFmax','k'),kR:rg('kRmin','kRmax','k'),ab:rg('abMin','abMax'),hF:rg('hFmin','hFmax','h'),hR:rg('hRmin','hRmax','h'),
       rb:rg('rbMin','rbMax'),cp:rg('cpMin','cpMax'),aF:rg('aFmin','aFmax','w'),aR:rg('aRmin','aRmax','w')}
   };
 }
@@ -229,17 +241,21 @@ function setUnits(u,convert){
     document.querySelectorAll('[data-u]').forEach(el=>{
       if(el.value==='')return;
       const t=el.dataset.u, v=parseFloat(el.value);
-      if(!Number.isFinite(v))return;
+      if(t==='k'||!Number.isFinite(v))return;
       const si=old==='imperial'?v/FAC[t]:v;
       const out=u==='imperial'?si*FAC[t]:si;
       el.value=String(Math.round(out*(t==='w'||t==='s'?1:100))/(t==='w'||t==='s'?1:100));
     });
   }
   units=u;
+  if(convert){
+    if(u==='imperial'&&kUnit==='kgf')setKUnit('lb',true);
+    else if(u==='metric'&&kUnit==='lb')setKUnit('kgf',true);
+  }
   refreshLabels();
 }
 function refreshLabels(){
-  document.querySelectorAll('[data-ut]').forEach(el=>{el.textContent='('+UNITS[units][el.dataset.ut]+')'});
+  document.querySelectorAll('[data-ut]').forEach(el=>{el.textContent='('+uLab(el.dataset.ut)+')'});
   $('uMetric').setAttribute('aria-pressed',String(units==='metric'));
   $('uImp').setAttribute('aria-pressed',String(units==='imperial'));
 }
@@ -249,12 +265,12 @@ const STF_TXT={'-3':'Mucho más blando','-2':'Más blando','-1':'Algo más bland
 
 function cellHtml(c,side){
   if(c===null||c===undefined) return '<div class="cell"><span class="na">—</span></div>';
-  const t=c.t, unitTxt=c.u?c.u:(t?UNITS[units][t]:'');
+  const t=c.t, unitTxt=c.u?c.u:(t?uLab(t):'');
   let txt;
   if(c.v===null){txt=Math.round((c.pos||0)*100)+'<small>% del rango</small>';}
   else{
     const dv=t?fromSI(c.v,t):c.v;
-    const d=t==='p'&&units==='imperial'?1:(t==='k'&&units==='imperial'?0:(t==='h'?1:(c.d!==undefined?c.d:1)));
+    const d=t==='p'&&units==='imperial'?1:(t==='k'&&kUnit==='lb'?0:(t==='h'?1:(c.d!==undefined?c.d:1)));
     txt=dv.toFixed(d)+(unitTxt?'<small>'+unitTxt+'</small>':'')+(c.lim?'<span class="lim">límite '+c.lim+'</span>':'');
   }
   const meter=(c.pos!==undefined&&c.side)?'<div class="meter '+(c.side==='r'?'r':'')+'"><i style="width:'+Math.round(c.pos*100)+'%"></i></div>':'';
@@ -298,8 +314,8 @@ function plain(c){
   if(!c) return '—';
   if(c.v===null) return Math.round((c.pos||0)*100)+'% del rango';
   const t=c.t, dv=t?fromSI(c.v,t):c.v;
-  const d=t==='p'&&units==='imperial'?1:(t==='k'&&units==='imperial'?0:(t==='h'?1:(c.d!==undefined?c.d:1)));
-  return dv.toFixed(d)+(c.u?c.u:(t?' '+UNITS[units][t]:''));
+  const d=t==='p'&&units==='imperial'?1:(t==='k'&&kUnit==='lb'?0:(t==='h'?1:(c.d!==undefined?c.d:1)));
+  return dv.toFixed(d)+(c.u?c.u:(t?' '+uLab(t):''));
 }
 function resultText(out){
   const name=$('carName').value.trim()||'Coche sin nombre';
@@ -380,8 +396,21 @@ const CAMS={
 const CAT_CAM={s_exhaust:'rear',turbo:'engine',supercharger:'engine',intercooler:'engine',aspiration:'engine',bodykit:'all',drivetrainSwap:'under',swap:'engine',rimF:'fwheel',rimR:'rwheel',trackF:'fwheel',trackR:'rwheel',tireF:'fwheel',tireR:'rwheel',tires:'fwheel',rims:'fwheel',skirts:'side',bumperF:'frontend',wing:'wing',bumperR:'rear',exhaust:'rear',brakes:'fwheel',springs:'fwheel',arbF:'fwheel',arbR:'rwheel',reinf:'cabin',weight:'all',clutch:'under'};
 const GROUP_CAM={engine:'engine',chassis:'all',drivetrain:'under',wheels:'fwheel',aero:'all',conv:'all'};
 let camVB=[0,0,800,400],camAnim=0,curCam='all';
+let phAct=null,curPhoto='';
+function photoTo(src){
+  const A=$('phA'),B=$('phB'),stg=$('stage');
+  if(!A||!B)return;
+  const nxt=phAct===A?B:A,cur=phAct;
+  nxt.onerror=()=>{if(stg)stg.classList.remove('photo');curPhoto=''};
+  nxt.onload=()=>{nxt.classList.add('on');if(cur)cur.classList.remove('on');phAct=nxt};
+  nxt.src=src;
+}
 function camTo(name){
-  const svg=$('carSvg');
+  const svg=$('carSvg'),stg=$('stage'),car=carNow();
+  const src=car&&car.stage?(car.stage[name]||car.stage.all||null):null;
+  if(stg)stg.classList.toggle('photo',!!src);
+  if(src){if(curPhoto!==src){curPhoto=src;photoTo(src)}return;}
+  curPhoto='';
   if(!svg||!CAMS[name]||name===curCam)return;
   curCam=name;
   const t=CAMS[name],to=t.vb,from=camVB.slice();
@@ -473,8 +502,46 @@ function partTotals(car){
   kg+=Number(partSel.rimKg)||0;
   return {hp:hp,front:fr,kg:Math.round(kg*10)/10,pi:Math.min(999,car.pi+dpi),cr:cr};
 }
+/* Rangos fijos que traen algunas piezas (muelles de carreras, carga aerodinámica de competencia...). */
+const RNG_IDS={kF:['kFmin','kFmax','k'],kR:['kRmin','kRmax','k'],aF:['aFmin','aFmax','w'],aR:['aRmin','aRmax','w'],hF:['hFmin','hFmax','h'],hR:['hRmin','hRmax','h'],ab:['abMin','abMax',null],rb:['rbMin','rbMax',null],cp:['cpMin','cpMax',null]};
+const RNG_DEF={kF:[4,45],kR:[4,45],aF:[40,140],aR:[80,280],hF:[8,18],hR:[8,18],ab:[1,65],rb:[1,20],cp:[1,20]};
+const RNG_TXT={kF:'muelles del.',kR:'muelles tras.',aF:'carga del.',aR:'carga tras.',hF:'altura del.',hR:'altura tras.',ab:'barras',rb:'rebote',cp:'compresión'};
+let appliedRng={};
+function showRng(t,v){
+  if(t==='k')return String(kRound(v*KF[kUnit]));
+  if(t==='w')return String(units==='imperial'?Math.round(v*FAC.w):Math.round(v*100)/100);
+  if(t==='h')return String(Math.round((units==='imperial'?v*FAC.h:v)*100)/100);
+  return String(v);
+}
+function applyPartRanges(car){
+  const note=$('rngSrc'),want={},src=[];
+  allCats(car).forEach(cat=>{
+    const ix=partSel[cat.k],o=ix!==undefined&&ix>=0?cat.opts[ix]:null;
+    if(!o||!o.rng)return;
+    const r=o.rng,txt=[];
+    if(r.unit&&KF[r.unit]&&(r.kF||r.kR)&&kUnit!==r.unit)setKUnit(r.unit,true);
+    Object.keys(RNG_IDS).forEach(k=>{
+      if(!r[k])return;
+      const f=r[k].map(v=>RNG_IDS[k][2]==='k'?v/KF[r.unit||'kgf']:v);
+      want[k]=f;
+      txt.push(RNG_TXT[k]+' '+r[k][0]+' a '+r[k][1]+(RNG_IDS[k][2]==='k'?' '+KU[r.unit||'kgf']:''));
+    });
+    src.push('«'+o.n+'» ('+txt.join(', ')+')');
+  });
+  Object.keys(RNG_IDS).forEach(k=>{
+    const [i0,i1,t]=RNG_IDS[k],v=want[k]||(appliedRng[k]?RNG_DEF[k]:null);
+    if(!v)return;
+    $(i0).value=showRng(t,v[0]);$(i1).value=showRng(t,v[1]);
+    appliedRng[k]=!!want[k];
+  });
+  if(note){
+    note.hidden=!src.length;
+    note.textContent=src.length?('Rangos fijos de las piezas instaladas: '+src.join('; ')+'. Cambian si instalas otra pieza.'):'';
+  }
+}
 function applyPartsToInputs(){
   const car=carNow();if(!car)return;
+  applyPartRanges(car);
   const t=partTotals(car);
   $('hp').value=car.hp+t.hp;
   const w=Math.round((car.weight+t.kg)*10)/10;
@@ -797,8 +864,13 @@ function collect(){
 }
 function applyProfile(p){
   units=p.units==='imperial'?'imperial':'metric';
+  const pd=p.data||{};
+  if(pd.hMin!==undefined&&pd.hFmin===undefined){pd.hFmin=pd.hRmin=pd.hMin;pd.hFmax=pd.hRmax=pd.hMax}
+  if(!KF[pd.kUnit])pd.kUnit=units==='imperial'?'lb':'kgf';
+  kUnit=pd.kUnit;$('kUnit').value=kUnit;
   refreshLabels();
-  FIELDS.forEach(id=>{if(p.data&&p.data[id]!==undefined)$(id).value=p.data[id]});
+  FIELDS.forEach(id=>{if(pd[id]!==undefined)$(id).value=pd[id]});
+  kUnit=$('kUnit').value;appliedRng={};
   $('carSel').value=(p.data&&p.data.carId)||'';
   try{partSel=p.data&&p.data.parts?JSON.parse(p.data.parts):{}}catch(e){partSel={}}
   renderParts();
@@ -856,6 +928,7 @@ document.addEventListener('DOMContentLoaded',()=>{});
 ['tabCalc','tabDiag','tabParts','tabProf'].forEach(id=>$(id).addEventListener('click',()=>selectTab(id)));
 $('uMetric').addEventListener('click',()=>{setUnits('metric',true);render()});
 $('uImp').addEventListener('click',()=>{setUnits('imperial',true);render()});
+$('kUnit').addEventListener('change',()=>{setKUnit($('kUnit').value,true);render()});
 $('form').addEventListener('input',render);
 $('form').addEventListener('change',render);
 $('saveBtn').addEventListener('click',saveProfile);

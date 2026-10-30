@@ -371,7 +371,18 @@
      "fx": "Altura -4.0 cm",
      "pi": 462,
      "cr": 2050,
-     "unlock": "springs"
+     "unlock": "springs",
+     "rng": {
+      "unit": "kgf",
+      "kF": [
+       50.5,
+       252.4
+      ],
+      "kR": [
+       50.5,
+       252.4
+      ]
+     }
     },
     {
      "n": "Rally",
@@ -379,7 +390,18 @@
      "fx": "Altura +2.3 cm",
      "pi": 461,
      "cr": 2050,
-     "unlock": "springs"
+     "unlock": "springs",
+     "rng": {
+      "unit": "kgf",
+      "kF": [
+       25.3,
+       126.4
+      ],
+      "kR": [
+       43.6,
+       126.4
+      ]
+     }
     },
     {
      "n": "Derrape",
@@ -387,7 +409,18 @@
      "fx": "Altura -4.8 cm",
      "pi": 462,
      "cr": 2050,
-     "unlock": "springs"
+     "unlock": "springs",
+     "rng": {
+      "unit": "kgf",
+      "kF": [
+       50.5,
+       252.4
+      ],
+      "kR": [
+       50.5,
+       252.4
+      ]
+     }
     }
    ]
   },
@@ -656,7 +689,9 @@
   "tire": 2.1
  },
  "missing": [
-  "rangos de los controles de reglaje"
+  "altura mínima y máxima de la suspensión (delante y detrás)",
+  "rangos de barras, rebote y compresión",
+  "calibración de la escala de los muelles (con los rangos del juego salen siempre en el mínimo)"
  ],
  "aero": [
   {
@@ -697,7 +732,13 @@
      "fx": "Ajustable",
      "pi": 458,
      "cr": 5000,
-     "unlock": "aeroF"
+     "unlock": "aeroF",
+     "rng": {
+      "aF": [
+       53,
+       88
+      ]
+     }
     }
    ]
   },
@@ -725,7 +766,13 @@
      "fx": "Ajustable",
      "pi": 450,
      "cr": 5000,
-     "unlock": "aeroR"
+     "unlock": "aeroR",
+     "rng": {
+      "aR": [
+       86,
+       144
+      ]
+     }
     },
     {
      "n": "Big Country Labs (competencia)",
@@ -733,7 +780,13 @@
      "fx": "Ajustable",
      "pi": 450,
      "cr": 5000,
-     "unlock": "aeroR"
+     "unlock": "aeroR",
+     "rng": {
+      "aR": [
+       86,
+       144
+      ]
+     }
     },
     {
      "n": "Quitar alerón",
@@ -1076,5 +1129,17 @@
   }
  ],
  "notes": [],
- "img": "data/img/toyota-86-2013.png"
+ "img": "data/img/toyota-86-2013.png",
+ "stage": {
+  "engine": "data/img/stage/toyota-86-2013/engine.jpg",
+  "all": "data/img/stage/toyota-86-2013/all.jpg",
+  "rear": "data/img/stage/toyota-86-2013/rear.jpg",
+  "fwheel": "data/img/stage/toyota-86-2013/fwheel.jpg",
+  "under": "data/img/stage/toyota-86-2013/under.jpg",
+  "frontend": "data/img/stage/toyota-86-2013/frontend.jpg",
+  "wing": "data/img/stage/toyota-86-2013/wing.jpg",
+  "side": "data/img/stage/toyota-86-2013/side.jpg",
+  "rwheel": "data/img/stage/toyota-86-2013/rwheel.jpg",
+  "cabin": "data/img/stage/toyota-86-2013/all.jpg"
+ }
 }
