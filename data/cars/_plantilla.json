@@ -1,0 +1,77 @@
+{
+ "_ayuda": "Copia este archivo como data/cars/<marca>-<modelo>-<año>.json, rellénalo y añade su nombre de archivo en data/index.json. Borra esta línea y las que empiezan por _.",
+ "id": "marca-modelo-año",
+ "year": 2000,
+ "maker": "Marca",
+ "name": "Modelo",
+ "rarity": "Común",
+ "img": "data/img/<marca>-<modelo>-<año>.png",
+ "pi": 400,
+ "drive": "rwd",
+ "weight": 1300,
+ "front": 52,
+ "hp": 200,
+ "torque": 200,
+ "disp": 2.0,
+ "perf": {
+  "top": 220.0,
+  "a97": 6.0,
+  "a161": 15.0,
+  "brk97": 35.0,
+  "brk161": 80.0,
+  "g97": 0.9,
+  "g193": 0.9,
+  "tire": 2.1
+ },
+ "engine": [
+  {
+   "k": "intake",
+   "n": "Admisión de aire",
+   "opts": [
+    {
+     "n": "Callejera",
+     "hp": 4,
+     "pi": 404,
+     "cr": 600
+    }
+   ]
+  }
+ ],
+ "chassis": [
+  {
+   "k": "brakes",
+   "n": "Frenos",
+   "opts": [
+    {
+     "n": "Carreras",
+     "hp": 0,
+     "fx": "Frenado +34 %",
+     "pi": 409,
+     "cr": 1950,
+     "unlock": "brakes"
+    }
+   ]
+  },
+  {
+   "k": "weight",
+   "n": "Reducción de peso",
+   "opts": [
+    {
+     "n": "Deportiva",
+     "hp": 0,
+     "kg": -105,
+     "pi": 417,
+     "cr": 1550
+    }
+   ]
+  }
+ ],
+ "drivetrain": [],
+ "wheels": [],
+ "aero": [],
+ "conv": [],
+ "missing": [
+  "lo que aún no hayas cargado"
+ ],
+ "_notas": "pi es el PI TOTAL del coche con esa pieza sola; hp es la potencia que añade; kg suma o resta peso; cr es el precio. 'unlock' puede ser: springs, brakes, arbF, arbR, gearFinal, gears, diffAccel, diffFull, aeroF, aeroR. 'drive':'awd' en una conversión cambia la tracción. 'rarity' es Común, Raro, Épico o Legendario. 'img' es la tarjeta del coche (opcional; si falta, la página dibuja una). El logo de la marca va en data/brands/<marca en minúsculas y sin acentos>.png. Una categoría puede llevar 'showIf' o 'hideIf', por ejemplo {\"aspiration\":[0]}, para aparecer o esconderse según la opción elegida en otra categoría; y una opción puede llevar 'dpi' (cambio de PI sobre la pieza ya instalada) en lugar de calcularlo desde 'pi'. Mira data/cars/toyota-86-2013.json como ejemplo completo."
+}

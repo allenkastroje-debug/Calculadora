@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0B0B0C">
+<meta name="description" content="Calculadora de reglajes y piezas para Forza Horizon 6">
+<title>Banco de Reglajes</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=Saira+Condensed:wght@600;700&display=swap">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <div>
+      <h1>Banco de Reglajes</h1>
+      <p>Calculadora de ajustes para Forza Horizon 6. Te da un punto de partida según tu coche y uso, y lo corriges con lo que sientes en pista.</p>
+    </div>
+    <div class="seg" role="group" aria-label="Unidades">
+      <button type="button" id="uMetric" aria-pressed="true">Métrico</button>
+      <button type="button" id="uImp" aria-pressed="false">Imperial</button>
+    </div>
+  </div>
+
+  <div class="tabs" role="tablist" aria-label="Secciones">
+    <button type="button" role="tab" id="tabCalc" aria-selected="true" aria-controls="pCalc">Reglajes</button>
+    <button type="button" role="tab" id="tabDiag" aria-selected="false" aria-controls="pDiag">Diagnóstico</button>
+    <button type="button" role="tab" id="tabParts" aria-selected="false" aria-controls="pParts">Piezas</button>
+    <button type="button" role="tab" id="tabProf" aria-selected="false" aria-controls="pProf">Perfiles</button>
+  </div>
+
+  <!-- REGLAJES -->
+  <div role="tabpanel" id="pCalc" aria-labelledby="tabCalc">
+    <div class="grid">
+      <form class="panel" id="form" autocomplete="off" onsubmit="return false">
+        <fieldset>
+          <legend>Coche</legend>
+          <div class="pickRow"><span class="lab" id="carPickLab">Coche de la lista</span><button type="button" class="pickBtn" id="carPick" aria-haspopup="dialog" aria-labelledby="carPickLab carPickTxt"><span id="carPickTxt">Personalizado</span><span aria-hidden="true">›</span></button></div>
+          <select id="carSel" hidden aria-hidden="true" tabindex="-1"><option value="">Personalizado</option></select>
+          <label>Nombre<input type="text" id="carName" placeholder="Ej: Nissan Skyline GT-R"></label>
+          <div class="f2">
+            <label>Clase
+              <select id="cls"><option value="D">D (hasta 400)</option><option value="C">C (hasta 500)</option><option value="B">B (hasta 600)</option><option value="A">A (hasta 700)</option><option value="S1">S1 (hasta 800)</option><option value="S2" selected>S2 (hasta 900)</option><option value="R">R (hasta 998)</option><option value="X">X (999)</option></select>
+            </label>
+            <label>Tracción
+              <select id="drive"><option value="rwd">Trasera (RWD)</option><option value="fwd">Delantera (FWD)</option><option value="awd" selected>Total (AWD)</option></select>
+            </label>
+            <label>Peso <span class="u" data-ut="w"></span><input type="number" id="weight" data-u="w" inputmode="decimal" value="1450" min="300" step="1"></label>
+            <label>Peso delantero (%)<input type="number" id="front" inputmode="decimal" value="53" min="30" max="75" step="0.5"></label>
+            <label>Potencia (hp)<input type="number" id="hp" inputmode="decimal" value="650" min="30" step="1"></label>
+            <label>Neumáticos
+              <select id="tire">
+                <option value="street">Calle</option><option value="sport">Sport</option>
+                <option value="semi" selected>Semi-slick</option><option value="slick">Slick</option>
+                <option value="rally">Rally</option><option value="offroad">Todoterreno</option><option value="drag">Drag</option>
+              </select>
+            </label>
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend>Uso</legend>
+          <div class="f2">
+            <label>Tipo de carrera
+              <select id="use">
+                <option value="road" selected>Circuito de asfalto</option>
+                <option value="street">Calle y uso diario</option>
+                <option value="dirt">Tierra / rally</option>
+                <option value="cross">Cross country</option>
+                <option value="drift">Drift</option>
+                <option value="drag">Drag</option>
+              </select>
+            </label>
+            <label id="trackWrap">Tipo de pista
+              <select id="track"><option value="fast">Rápida</option><option value="mixed" selected>Mixta</option><option value="tech">Técnica (curvas lentas)</option></select>
+            </label>
+          </div>
+          <label>Aerodinámica ajustable
+            <select id="aero">
+              <option value="both" selected>Delantera y trasera</option>
+              <option value="rear">Solo alerón trasero</option>
+              <option value="front">Solo delantera (splitter)</option>
+              <option value="none">Ninguna</option>
+            </select>
+          </label>
+        </fieldset>
+
+        <fieldset>
+          <legend>Cómo se siente en pista</legend>
+          <div class="slider">
+            <label for="bal">Comportamiento actual</label>
+            <input type="range" id="bal" min="-3" max="3" step="1" value="0">
+            <div class="ends"><span>Subvira</span><output id="balOut" for="bal">Neutro</output><span>Sobrevira</span></div>
+          </div>
+          <div class="slider">
+            <label for="stiff">Rigidez general</label>
+            <input type="range" id="stiff" min="-3" max="3" step="1" value="0">
+            <div class="ends"><span>Más blando</span><output id="stiffOut" for="stiff">Base</output><span>Más duro</span></div>
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend>Marchas (opcional)</legend>
+          <div class="f2">
+            <label>Relación final actual<input type="number" id="fd" inputmode="decimal" step="0.01" placeholder="3.42"></label>
+            <label>Vel. máx. actual <span class="u" data-ut="s"></span><input type="number" id="topNow" data-u="s" inputmode="decimal" placeholder="290"></label>
+            <label>Vel. máx. objetivo <span class="u" data-ut="s"></span><input type="number" id="topTarget" data-u="s" inputmode="decimal" placeholder="260"></label>
+          </div>
+        </fieldset>
+
+        <details id="ranges">
+          <summary>Rangos de los controles de tu coche</summary>
+          <p class="hint">Cada coche tiene rangos distintos. Los valores de abajo son de ejemplo. Copia el mínimo y el máximo que ves en el menú de reglajes del juego para que los números salgan exactos.</p>
+          <div class="rng"><span class="n">Muelles del. <span class="u" data-ut="k"></span></span><label>Mín<input type="number" id="kFmin" data-u="k" step="0.1" value="4"></label><label>Máx<input type="number" id="kFmax" data-u="k" step="0.1" value="45"></label></div>
+          <div class="rng"><span class="n">Muelles tras. <span class="u" data-ut="k"></span></span><label>Mín<input type="number" id="kRmin" data-u="k" step="0.1" value="4"></label><label>Máx<input type="number" id="kRmax" data-u="k" step="0.1" value="45"></label></div>
+          <div class="rng"><span class="n">Barras estab.</span><label>Mín<input type="number" id="abMin" step="0.1" value="1"></label><label>Máx<input type="number" id="abMax" step="0.1" value="65"></label></div>
+          <div class="rng"><span class="n">Altura <span class="u" data-ut="h"></span></span><label>Mín<input type="number" id="hMin" data-u="h" step="0.1" value="8"></label><label>Máx<input type="number" id="hMax" data-u="h" step="0.1" value="18"></label></div>
+          <div class="rng"><span class="n">Rebote</span><label>Mín<input type="number" id="rbMin" step="0.1" value="1"></label><label>Máx<input type="number" id="rbMax" step="0.1" value="20"></label></div>
+          <div class="rng"><span class="n">Compresión</span><label>Mín<input type="number" id="cpMin" step="0.1" value="1"></label><label>Máx<input type="number" id="cpMax" step="0.1" value="20"></label></div>
+          <div class="rng"><span class="n">Aero del. <span class="u" data-ut="w"></span></span><label>Mín<input type="number" id="aFmin" data-u="w" step="1" value="40"></label><label>Máx<input type="number" id="aFmax" data-u="w" step="1" value="140"></label></div>
+          <div class="rng"><span class="n">Aero tras. <span class="u" data-ut="w"></span></span><label>Mín<input type="number" id="aRmin" data-u="w" step="1" value="80"></label><label>Máx<input type="number" id="aRmax" data-u="w" step="1" value="280"></label></div>
+        </details>
+
+        <div class="actions">
+          <button type="button" class="btn" id="saveBtn">Guardar perfil</button>
+          <span class="status" id="saveStatus" role="status"></span>
+        </div>
+      </form>
+
+      <div class="results" id="results" aria-live="polite"></div>
+    </div>
+  </div>
+
+  <!-- DIAGNÓSTICO -->
+  <div role="tabpanel" id="pDiag" aria-labelledby="tabDiag" hidden>
+    <div class="chips" id="diagChips" role="group" aria-label="Filtrar por problema"></div>
+    <div class="diag" id="diagList"></div>
+  </div>
+
+  <!-- PIEZAS -->
+  <div role="tabpanel" id="pParts" aria-labelledby="tabParts" hidden>
+    <div class="garage" id="partsBox">
+      <div class="stage" id="stage">
+        <svg id="carSvg" viewBox="0 0 800 400" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Silueta de un coupé deportivo. La cámara se acerca a la zona de la pieza elegida.">
+          <rect x="-400" y="-400" width="1600" height="1200" fill="var(--stage)"/>
+          <line x1="-400" y1="330" x2="1200" y2="330" stroke="var(--line)" stroke-width="2" vector-effect="non-scaling-stroke"/>
+          <ellipse cx="410" cy="334" rx="390" ry="11" fill="#000" opacity=".35"/>
+          <path d="M50 264 L52 228 C70 216 120 210 182 204 C232 160 292 116 380 110 L470 110 C540 116 592 158 640 196 L728 208 C760 212 776 236 772 264 Z" fill="var(--car)"/>
+          <path d="M252 188 C288 146 330 124 384 122 L466 122 C510 128 552 158 590 188 Z" fill="var(--glass)"/>
+          <path d="M60 262 H772 L766 278 H70 Z" fill="var(--car-dark)"/>
+          <path d="M742 216 L766 220 L764 232 L740 228 Z" fill="#FFE9A8"/>
+          <rect x="52" y="226" width="16" height="10" fill="var(--rear)"/>
+          <circle cx="200" cy="270" r="68" fill="var(--stage)"/>
+          <circle cx="600" cy="270" r="68" fill="var(--stage)"/>
+          <g>
+            <circle cx="200" cy="270" r="56" fill="var(--tire)"/><circle cx="200" cy="270" r="36" fill="var(--rim)"/>
+            <path d="M200 236V304M166 270H234M176 246L224 294M224 246L176 294" stroke="var(--tire)" stroke-width="5" stroke-linecap="round" opacity=".55"/>
+            <circle cx="200" cy="270" r="8" fill="var(--tire)"/>
+          </g>
+          <g>
+            <circle cx="600" cy="270" r="56" fill="var(--tire)"/><circle cx="600" cy="270" r="36" fill="var(--rim)"/>
+            <path d="M600 236V304M566 270H634M576 246L624 294M624 246L576 294" stroke="var(--tire)" stroke-width="5" stroke-linecap="round" opacity=".55"/>
+            <circle cx="600" cy="270" r="8" fill="var(--tire)"/>
+          </g>
+          <ellipse id="camHot" cx="0" cy="0" rx="0" ry="0" fill="none" stroke="var(--hl)" stroke-width="3" stroke-dasharray="8 6" vector-effect="non-scaling-stroke" style="opacity:0"/>
+        </svg>
+        <div class="stageTag" id="stageTag">Sin coche elegido</div>
+      </div>
+      <div class="shop" id="shop"></div>
+    </div>
+  </div>
+
+  <!-- PERFILES -->
+  <div role="tabpanel" id="pProf" aria-labelledby="tabProf" hidden>
+    <div class="panel">
+      <h2>Perfiles guardados</h2>
+      <div class="prof" id="profList"></div>
+      <p class="status" id="profStatus" role="status"></p>
+    </div>
+    <div class="panel">
+      <h2>Copia de seguridad</h2>
+      <p class="why">Los perfiles se guardan solo en este navegador. Copia el texto de abajo para tener respaldo o llevarlo a otro dispositivo, y pégalo allí para importarlo.</p>
+      <label>Datos de perfiles<textarea id="ioBox" spellcheck="false" placeholder="Pulsa Exportar para ver tus perfiles aquí, o pega aquí lo que quieras importar."></textarea></label>
+      <div class="actions">
+        <button type="button" class="btn" id="exportBtn">Exportar</button>
+        <button type="button" class="btn ghost" id="copyIoBtn">Copiar texto</button>
+        <button type="button" class="btn ghost" id="importBtn">Importar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="picker" id="picker" role="dialog" aria-modal="true" aria-labelledby="pickTitle" hidden>
+  <div class="pickBar"><button type="button" class="back" id="pickBack">‹ Atrás</button><h2 id="pickTitle">Marca</h2><button type="button" class="back" id="pickClose">Cerrar</button></div>
+  <div class="pickBody" id="pickBody"></div>
+</div>
+
+<script src="js/app.js"></script>
+</body>
+</html>

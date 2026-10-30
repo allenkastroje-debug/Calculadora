@@ -1,0 +1,424 @@
+{
+ "_nota": "Datos del motor cambiado del 86, guardados por si se retoman. No se cargan en la página.",
+ "swap": [
+  {
+   "k": "swap",
+   "n": "Motor cambiado",
+   "opts": [
+    {
+     "n": "2.0L F4 - Turbo",
+     "hp": 81,
+     "pi": 544,
+     "cr": 22500,
+     "ownParts": true
+    },
+    {
+     "n": "2.5L I6-T",
+     "hp": 79,
+     "pi": 524,
+     "cr": 22500
+    },
+    {
+     "n": "3.0L I6 - TT",
+     "hp": 123,
+     "pi": 542,
+     "cr": 25000
+    },
+    {
+     "n": "2.0L F4 - Turbo Rally",
+     "hp": 133,
+     "pi": 562,
+     "cr": 27500
+    },
+    {
+     "n": "2.5L F4-T",
+     "hp": 144,
+     "pi": 558,
+     "cr": 27500
+    },
+    {
+     "n": "6.2L V8",
+     "hp": 258,
+     "pi": 571,
+     "cr": 35000
+    },
+    {
+     "n": "4.0L F6",
+     "hp": 321,
+     "pi": 578,
+     "cr": 40000
+    },
+    {
+     "n": "4.0L V8-TT",
+     "hp": 503,
+     "pi": 585,
+     "cr": 52500
+    }
+   ]
+  }
+ ],
+ "piezas_2.0L_F4_Turbo": [
+  {
+   "k": "s_intake",
+   "n": "Admisión de aire",
+   "showIf": {
+    "swap": [
+     0
+    ]
+   },
+   "opts": [
+    {
+     "n": "Admisión callejera",
+     "hp": 4,
+     "pi": 546,
+     "dpi": 2,
+     "cr": 600
+    },
+    {
+     "n": "Admisión deportiva",
+     "hp": 8,
+     "pi": 548,
+     "dpi": 4,
+     "cr": 1200
+    },
+    {
+     "n": "Admisión de carreras",
+     "hp": 12,
+     "pi": 550,
+     "dpi": 6,
+     "cr": 1800
+    }
+   ]
+  },
+  {
+   "k": "s_fuel",
+   "n": "Sistema de combustible",
+   "showIf": {
+    "swap": [
+     0
+    ]
+   },
+   "opts": [
+    {
+     "n": "Sistema de combustible callejero",
+     "hp": 5,
+     "pi": 546,
+     "dpi": 2,
+     "cr": 750
+    },
+    {
+     "n": "Sistema de combustible deportivo",
+     "hp": 11,
+     "pi": 549,
+     "dpi": 5,
+     "cr": 1450
+    },
+    {
+     "n": "Sistema de combustible de carreras",
+     "hp": 18,
+     "pi": 552,
+     "dpi": 8,
+     "cr": 2200
+    }
+   ]
+  },
+  {
+   "k": "s_ignition",
+   "n": "Encendido",
+   "showIf": {
+    "swap": [
+     0
+    ]
+   },
+   "opts": [
+    {
+     "n": "Encendido callejero",
+     "hp": 4,
+     "pi": 546,
+     "dpi": 2,
+     "cr": 650
+    },
+    {
+     "n": "Encendido deportivo",
+     "hp": 9,
+     "pi": 548,
+     "dpi": 4,
+     "cr": 1300
+    },
+    {
+     "n": "Encendido de carreras",
+     "hp": 15,
+     "pi": 550,
+     "dpi": 6,
+     "cr": 1950
+    }
+   ]
+  },
+  {
+   "k": "s_exhaust",
+   "n": "Escape",
+   "showIf": {
+    "swap": [
+     0
+    ]
+   },
+   "opts": [
+    {
+     "n": "Escape deportivo",
+     "hp": 12,
+     "pi": 550,
+     "dpi": 6,
+     "cr": 1350
+    },
+    {
+     "n": "Escape de carreras",
+     "hp": 19,
+     "pi": 554,
+     "dpi": 10,
+     "cr": 2050
+    }
+   ]
+  },
+  {
+   "k": "s_cams",
+   "n": "Árbol de levas",
+   "showIf": {
+    "swap": [
+     0
+    ]
+   },
+   "opts": [
+    {
+     "n": "Levas y válvulas callejeras",
+     "hp": 13,
+     "pi": 551,
+     "dpi": 7,
+     "cr": 1000
+    },
+    {
+     "n": "Levas y válvulas deportivas",
+     "hp": 36,
+     "pi": 560,
+     "dpi": 16,
+     "cr": 2000
+    },
+    {
+     "n": "Levas y válvulas de carreras",
+     "hp": 63,
+     "pi": 567,
+     "dpi": 23,
+     "cr": 3000
+    }
+   ]
+  },
+  {
+   "k": "s_valves",
+   "n": "Válvulas",
+   "showIf": {
+    "swap": [
+     0
+    ]
+   },
+   "opts": [
+    {
+     "n": "Válvulas callejeras",
+     "hp": 4,
+     "pi": 546,
+     "dpi": 2,
+     "cr": 1000
+    },
+    {
+     "n": "Válvulas deportivas",
+     "hp": 9,
+     "pi": 548,
+     "dpi": 4,
+     "cr": 2000
+    },
+    {
+     "n": "Válvulas de carreras",
+     "hp": 14,
+     "pi": 550,
+     "dpi": 6,
+     "cr": 3000
+    }
+   ]
+  },
+  {
+   "k": "s_block",
+   "n": "Cilindrada (bloque motor)",
+   "showIf": {
+    "swap": [
+     0
+    ]
+   },
+   "opts": [
+    {
+     "n": "Bloque motor callejero",
+     "hp": 7,
+     "pi": 547,
+     "dpi": 3,
+     "cr": 1100
+    },
+    {
+     "n": "Bloque motor deportivo",
+     "hp": 16,
+     "pi": 551,
+     "dpi": 7,
+     "cr": 2100
+    },
+    {
+     "n": "Bloque motor de carreras",
+     "hp": 27,
+     "pi": 555,
+     "dpi": 11,
+     "cr": 3200
+    }
+   ]
+  },
+  {
+   "k": "s_pistons",
+   "n": "Pistones y compresión",
+   "showIf": {
+    "swap": [
+     0
+    ]
+   },
+   "opts": [
+    {
+     "n": "Pistones deportivos / Compresión",
+     "hp": 11,
+     "pi": 549,
+     "dpi": 5,
+     "cr": 2100
+    },
+    {
+     "n": "Pistones de carreras / Compresión",
+     "hp": 17,
+     "pi": 552,
+     "dpi": 8,
+     "cr": 3200
+    }
+   ]
+  },
+  {
+   "k": "s_turbo",
+   "n": "Turbo único",
+   "showIf": {
+    "swap": [
+     0
+    ]
+   },
+   "opts": [
+    {
+     "n": "Turbo deportivo",
+     "hp": 27,
+     "pi": 554,
+     "dpi": 10,
+     "cr": 3600
+    },
+    {
+     "n": "Turbo de carreras",
+     "hp": 45,
+     "pi": 559,
+     "dpi": 15,
+     "cr": 5400
+    },
+    {
+     "n": "Turbo de carreras con antirretraso",
+     "hp": 45,
+     "pi": 559,
+     "dpi": 15,
+     "cr": 7200
+    }
+   ]
+  },
+  {
+   "k": "s_intercooler",
+   "n": "Intercooler",
+   "showIf": {
+    "swap": [
+     0
+    ]
+   },
+   "opts": [
+    {
+     "n": "Intercooler deportivo",
+     "hp": 5,
+     "pi": 545,
+     "dpi": 1,
+     "cr": 1450
+    },
+    {
+     "n": "Intercooler de carrera",
+     "hp": 12,
+     "pi": 547,
+     "dpi": 3,
+     "cr": 2200
+    }
+   ]
+  },
+  {
+   "k": "s_oil",
+   "n": "Aceite y refrigeración",
+   "showIf": {
+    "swap": [
+     0
+    ]
+   },
+   "opts": [
+    {
+     "n": "Aceite deportivo / Refrigeración",
+     "hp": 5,
+     "pi": 546,
+     "dpi": 2,
+     "cr": 1400
+    },
+    {
+     "n": "Aceite de carreras / Refrigeración",
+     "hp": 8,
+     "pi": 547,
+     "dpi": 3,
+     "cr": 2100
+    }
+   ]
+  },
+  {
+   "k": "s_flywheel",
+   "n": "Volante motor",
+   "showIf": {
+    "swap": [
+     0
+    ]
+   },
+   "opts": [
+    {
+     "n": "Volante motor callejero",
+     "hp": 0,
+     "pi": 544,
+     "dpi": 0,
+     "cr": 800,
+     "kg": -1
+    },
+    {
+     "n": "Volante motor deportivo",
+     "hp": 0,
+     "pi": 545,
+     "dpi": 1,
+     "cr": 1600,
+     "kg": -2
+    },
+    {
+     "n": "Volante motor de carreras",
+     "hp": 0,
+     "pi": 546,
+     "dpi": 2,
+     "cr": 2400,
+     "kg": -4
+    }
+   ]
+  }
+ ],
+ "notes": [
+  "Con el motor 2.0L F4 - Turbo instalado, el menú del motor cambia: no hay colector de admisión ni cuerpo regulador, y aparecen «Turbo único» (el instalado se llama «Turbo de serie») e «Intercooler». Las mejoras de este motor parten de PI 544."
+ ]
+}
