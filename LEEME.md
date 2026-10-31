@@ -46,3 +46,10 @@ Edita el final de `styles.css`. Los colores principales están en las variables 
 ## Actualizar
 
 Al subir archivos nuevos al repositorio, GitHub tarda uno o dos minutos en publicarlos. Con conexión la página siempre intenta cargar la última versión; si no la ves, recárgala una vez.
+
+
+## Rangos fijos
+Barras estabilizadoras (1–65), rebote (1–20) y compresión (1–20) son fijos para todos los coches y no hace falta indicarlos en el JSON.
+
+## Telemetría
+La pestaña «Telemetría» lee los datos en vivo del juego (Data Out) mediante un pequeño programa receptor que corre en tu PC. Instrucciones en `herramientas/TELEMETRIA.md`. Funciona al abrir la página desde Chrome, Edge o Firefox en la misma PC del receptor.

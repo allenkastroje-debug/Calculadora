@@ -217,3 +217,34 @@ body.pickOpen{overflow:hidden}
    Ejemplo:
    :root{ --accent:#00E5A0; }
 */
+
+/* ===== Telemetría ===== */
+.tl-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px}
+.tl-row{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end}
+.tl-row label{flex:1 1 220px}
+.tl-st{font-size:13px;color:var(--muted)}
+.tl-st b{color:var(--ink)}
+.tl-st.ok b{color:var(--accent)}
+.tl-st.bad b{color:#FF6B6B}
+.tl-big{display:flex;gap:18px;align-items:baseline;flex-wrap:wrap}
+.tl-big .n{font-family:var(--mono);font-size:34px;font-weight:700;line-height:1}
+.tl-big .u{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+.tl-bar{height:8px;background:var(--field);border:1px solid var(--line);border-radius:999px;overflow:hidden}
+.tl-bar i{display:block;height:100%;background:var(--accent);width:0}
+.tl-bar.b i{background:#FF6B6B}
+.tl-ped{display:grid;grid-template-columns:70px 1fr;gap:6px 10px;align-items:center;font-size:12px;color:var(--muted)}
+.tl-car{display:grid;grid-template-columns:1fr 1fr;gap:8px 18px;max-width:360px;margin:0 auto}
+.tl-w{border:1px solid var(--line);border-radius:6px;padding:8px;background:var(--field);font-family:var(--mono);font-size:12px;display:grid;gap:4px}
+.tl-w .h{font-family:var(--body);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.tl-w.hot{border-color:#FF6B6B}
+.tl-w .sv{height:34px;border:1px solid var(--line);border-radius:4px;position:relative;overflow:hidden;background:var(--bg)}
+.tl-w .sv i{position:absolute;left:0;right:0;bottom:0;background:var(--accent);opacity:.8}
+.tl-met{width:100%;border-collapse:collapse;font-size:13px}
+.tl-met td,.tl-met th{padding:6px 8px;border-bottom:1px solid var(--line);text-align:left}
+.tl-met td.n{font-family:var(--mono);text-align:right}
+.tl-rec{border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:6px;padding:10px 12px;background:var(--bg);display:grid;gap:4px}
+.tl-rec.w{border-left-color:#FFB020}.tl-rec.s{border-left-color:#FF6B6B}
+.tl-rec h4{margin:0;font-size:14px}
+.tl-rec p{margin:0;font-size:13px;color:var(--muted)}
+.tl-rec ul{margin:4px 0 0;padding-left:18px;font-size:13px}
+.tl-small{font-size:12px;color:var(--muted)}

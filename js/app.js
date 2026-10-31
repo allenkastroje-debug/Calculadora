@@ -536,6 +536,7 @@ function applyPartRanges(car){
       want[k]=f;
       txt.push(RNG_TXT[k]+' '+r[k][0]+' a '+r[k][1]+(RNG_IDS[k][2]==='k'?' '+KU[r.unit||'kgf']:''));
     });
+    if(r.def&&r.def.kF!=null)txt.push('valor inicial en el juego del. '+r.def.kF+', tras. '+r.def.kR+' '+KU[r.unit||'kgf']);
     src.push('«'+o.n+'» ('+txt.join(', ')+')');
   });
   Object.keys(RNG_IDS).forEach(k=>{
@@ -928,7 +929,7 @@ function saveProfile(){
 
 /* ---------- Pestañas ---------- */
 function selectTab(id){
-  [['tabCalc','pCalc'],['tabDiag','pDiag'],['tabParts','pParts'],['tabProf','pProf']].forEach(([t,p])=>{
+  [['tabCalc','pCalc'],['tabDiag','pDiag'],['tabParts','pParts'],['tabTel','pTel'],['tabProf','pProf']].forEach(([t,p])=>{
     $(t).setAttribute('aria-selected',String(t===id));
     $(p).hidden=t!==id;
   });
@@ -936,9 +937,9 @@ function selectTab(id){
 
 /* ---------- Arranque ---------- */
 document.addEventListener('DOMContentLoaded',()=>{});
-['tabCalc','tabDiag','tabParts','tabProf'].forEach(id=>$(id).addEventListener('click',()=>selectTab(id)));
-$('uMetric').addEventListener('click',()=>{setUnits('metric',true);render()});
-$('uImp').addEventListener('click',()=>{setUnits('imperial',true);render()});
+['tabCalc','tabDiag','tabParts','tabTel','tabProf'].forEach(id=>$(id).addEventListener('click',()=>selectTab(id)));
+$('uMetric').addEventListener('click',()=>{setUnits('metric',true);if(carNow())applyPartRanges(carNow());render()});
+$('uImp').addEventListener('click',()=>{setUnits('imperial',true);if(carNow())applyPartRanges(carNow());render()});
 $('kUnit').addEventListener('change',()=>{setKUnit($('kUnit').value,true);render()});
 $('form').addEventListener('input',render);
 $('form').addEventListener('change',render);
@@ -964,7 +965,149 @@ $('importBtn').addEventListener('click',()=>{
   }catch(e){$('profStatus').textContent='El texto no tiene el formato esperado. Pega lo que copiaste con Exportar.'}
 });
 
+/* ---------- Telemetría (Data Out de Forza Horizon 6, vía receptor local) ---------- */
+/* Umbrales de partida SIN calibrar con datos reales: ajústalos aquí cuando hagas pruebas. */
+const TEL_OBJ={
+  /* U = deslizamiento delantero − trasero en curva (positivo = subviraje). obj: valor buscado; tol: margen aceptable */
+  road:{obj:0.05,tol:0.08},street:{obj:0.08,tol:0.10},dirt:{obj:0.00,tol:0.12},cross:{obj:0.00,tol:0.12},drift:{obj:-0.25,tol:0.15},drag:null
+};
+const TEL_UMB={curveAy:4,minSpd:8,bottom:0.97,bottomWarn:0.03,bottomBad:0.08,tracWarn:0.12,tracBad:0.25,lockWarn:0.10,lockBad:0.25,tempDiff:0.12};
+let tl={ws:null,last:null,rec:false,S:[],stat:null,prev:null};
+const tlAvg=a=>a.reduce((x,y)=>x+y,0)/(a.length||1);
+function tlStat(msg,cls){const e=$('tlSt');e.className='tl-st '+(cls||'');e.innerHTML=msg}
+function tlConnect(){
+  if(tl.ws){tl.ws.close();return}
+  let w;try{w=new WebSocket($('tlUrl').value.trim())}catch(e){tlStat('<b>Dirección no válida.</b>','bad');return}
+  tl.ws=w;tlStat('Conectando…');$('tlConn').textContent='Cancelar';
+  w.onopen=()=>{tlStat('<b>Conectado al receptor.</b> Esperando datos del juego…','ok');$('tlConn').textContent='Desconectar'};
+  w.onmessage=ev=>{let m;try{m=JSON.parse(ev.data)}catch(e){return}tlMsg(m)};
+  w.onerror=()=>{};
+  w.onclose=()=>{tl.ws=null;$('tlConn').textContent='Conectar';tlStat('<b>Sin conexión.</b> Comprueba que el receptor esté abierto y que abres la página en la misma PC (algunos navegadores, como Safari, bloquean esta conexión).','bad')};
+}
+function tlMsg(m){
+  if(m.t==='stat'){
+    tl.stat=m;const age=m.age;
+    if(!m.pk)tlStat('<b>Conectado.</b> El receptor aún no recibe paquetes del juego. Revisa Data Out (IP, puerto 9999) y que estés conduciendo.','ok');
+    else tlStat('<b>Recibiendo datos.</b> '+m.pk+' paquetes'+(age>3?' · sin datos hace '+age+' s (¿en menú o pausa?)':'')+'.','ok');
+    const c=$('tlChk');
+    if(m.pk&&m.len!==324&&m.len)c.innerHTML='<b>Aviso:</b> los paquetes miden '+m.len+' bytes y se esperaban 324. El formato podría haber cambiado.';
+    else if(m.sane===false)c.innerHTML='<b>Aviso:</b> los datos no cuadran entre sí (velocidad vs. vector de velocidad). Puede que el formato no coincida; ejecuta el receptor con <code>--volcar captura.bin</code> y envíame el archivo.';
+    else c.textContent='';
+    return;
+  }
+  if(m.t!=='s')return;
+  tl.last=m;tlLive(m);
+  if(tl.rec&&m.on&&m.spd>=1)tl.S.push(m);
+  if(tl.rec)tlRecSt();
+}
+function tlLive(m){
+  const mph=units==='imperial';
+  $('tlSpd').textContent=Math.round(m.spd*(mph?2.23694:3.6));$('tlSpdU').textContent=mph?'mph':'km/h';
+  $('tlGear').textContent=m.gear===0?'R':(m.gear||'–');$('tlRpm').textContent=Math.round(m.rpm);
+  $('tlGas').style.width=(m.gas/255*100)+'%';$('tlBrk').style.width=(m.brk/255*100)+'%';
+  const s=m.str/127,el=$('tlStr');el.style.width=Math.abs(s)*50+'%';el.style.marginLeft=(s<0?50+s*50:50)+'%';
+  const N=['Del. izq.','Del. der.','Tras. izq.','Tras. der.'];
+  const box=$('tlCar');
+  if(box.children.length!==4)box.innerHTML=N.map(n=>'<div class="tl-w"><span class="h">'+n+'</span><span data-s></span><span data-t></span><div class="sv"><i></i></div></div>').join('');
+  const mx=Math.max(...m.tmp),mn=Math.min(...m.tmp);
+  [...box.children].forEach((e,i)=>{
+    const cs=m.cs[i];e.classList.toggle('hot',cs>1);
+    e.querySelector('[data-s]').textContent='agarre '+(cs>1?'perdido ':'')+cs.toFixed(2);
+    e.querySelector('[data-t]').textContent='temp '+Math.round(m.tmp[i]);
+    e.querySelector('.sv i').style.height=Math.max(0,Math.min(1,m.nt[i]))*100+'%';
+  });
+  $('tlCarId').textContent='Coche nº '+m.ord+' · PI '+m.pi+' · clase '+['D','C','B','A','S1','S2','X'][m.cls]+' · '+['tracción delantera','tracción trasera','tracción total'][m.dt]+(m.best>0?' · mejor vuelta '+m.best.toFixed(2)+' s':'');
+}
+function tlRecSt(){
+  const n=tl.S.length;
+  $('tlRecSt').innerHTML='<b>Grabando…</b> '+n+' muestras (≈'+Math.round(n/30)+' s de conducción)'+(tl.last?' · vuelta '+tl.last.lap:'');
+}
+function tlToggle(){
+  tl.rec=!tl.rec;$('tlRec').textContent=tl.rec?'Detener':'Iniciar';
+  if(tl.rec){tl.S=[];tlRecSt();$('tlRes').hidden=true;if(!tl.last)$('tlRecSt').innerHTML='<b>Grabando…</b> aún no llegan datos del juego.'}
+  else tlAnalyze();
+}
+function tlClear(){tl.rec=false;tl.S=[];$('tlRec').textContent='Iniciar';$('tlRecSt').textContent='Sin grabar.';$('tlRes').hidden=true}
+
+/* ---------- Análisis ---------- */
+function tlMetrics(S){
+  const ok=S.filter(m=>m.spd>=TEL_UMB.minSpd);
+  const cur=ok.filter(m=>Math.abs(m.ax)>TEL_UMB.curveAy);
+  const U=a=>a.length?tlAvg(a.map(m=>(Math.abs(m.sa[0])+Math.abs(m.sa[1]))/2-(Math.abs(m.sa[2])+Math.abs(m.sa[3]))/2)):null;
+  const ent=cur.filter(m=>m.brk>40),sal=cur.filter(m=>m.gas>140&&m.brk<10),med=cur.filter(m=>m.brk<=40&&!(m.gas>140&&m.brk<10));
+  const dt=ok.length?ok[0].dt:1,driven=dt===0?[0,1]:dt===1?[2,3]:[0,1,2,3];
+  const fr=(a,f)=>a.length?a.filter(f).length/a.length:null;
+  const acc=ok.filter(m=>m.gas>180);
+  const brk=ok.filter(m=>m.brk>180&&m.spd>10);
+  const lk=(m,ix)=>ix.some(i=>m.sr[i]<-1);
+  const axTop=(m,i,j)=>Math.max(m.nt[i],m.nt[j]);
+  const tF=tlAvg(ok.map(m=>(m.tmp[0]+m.tmp[1])/2)),tR=tlAvg(ok.map(m=>(m.tmp[2]+m.tmp[3])/2));
+  const tL=tlAvg(ok.map(m=>(m.tmp[0]+m.tmp[2])/2)),tD=tlAvg(ok.map(m=>(m.tmp[1]+m.tmp[3])/2));
+  const rng=(i,j)=>{const v=ok.map(m=>(m.nt[i]+m.nt[j])/2).sort((a,b)=>a-b);return v.length?[v[Math.floor(v.length*.05)],v[Math.floor(v.length*.95)]]:null};
+  return{n:S.length,nOk:ok.length,nCur:cur.length,U:U(cur),Ue:U(ent),Um:U(med),Us:U(sal),nEnt:ent.length,nSal:sal.length,
+    botF:fr(ok,m=>axTop(m,0,1)>TEL_UMB.bottom),botR:fr(ok,m=>axTop(m,2,3)>TEL_UMB.bottom),
+    trac:fr(acc,m=>driven.some(i=>Math.abs(m.sr[i])>1)),nAcc:acc.length,
+    lockF:fr(brk,m=>lk(m,[0,1])),lockR:fr(brk,m=>lk(m,[2,3])),nBrk:brk.length,
+    tFR:tF&&tR?tF/tR:null,tLD:tL&&tD?tL/tD:null,rF:rng(0,1),rR:rng(2,3),dt:dt,
+    lap:S.length?Math.max(...S.map(m=>m.lap))-Math.min(...S.map(m=>m.lap))+1:0,best:tl.last?tl.last.best:0};
+}
+function tlRecs(M,use){
+  const R=[],o=TEL_OBJ[use],P=(sev,t,w,a)=>R.push({sev,t,w,a});
+  if(o&&M.nCur>=30){
+    const d=M.U-o.obj,ad=Math.abs(d),sev=ad<o.tol?'':ad<2*o.tol?'w':'s',big=ad>=2*o.tol;
+    if(!sev)P('','Equilibrio del coche dentro de lo buscado','Subviraje/sobreviraje en curva '+M.U.toFixed(2)+' (objetivo '+o.obj.toFixed(2)+' ± '+o.tol.toFixed(2)+').',[]);
+    else if(d>0)P(sev,'Subviraje'+(big?' marcado':' leve'),'Las ruedas delanteras se deslizan más que las traseras ('+M.U.toFixed(2)+', objetivo '+o.obj.toFixed(2)+').',
+      ['Barra estabilizadora delantera: ablandar un poco','Barra estabilizadora trasera: endurecer un poco','Muelles delanteros: ablandar','Caída delantera: más negativa','Presión delantera: bajar un poco']
+      .concat(M.Ue!==null&&M.Ue-o.obj>o.tol?['Se nota sobre todo al entrar: repartir el freno algo hacia atrás']:[])
+      .concat(M.Us!==null&&M.Us-o.obj>o.tol?['Se nota sobre todo al salir: bajar el bloqueo del diferencial en aceleración']:[]));
+    else P(sev,'Sobreviraje'+(big?' marcado':' leve'),'Las ruedas traseras se deslizan más que las delanteras ('+M.U.toFixed(2)+', objetivo '+o.obj.toFixed(2)+').',
+      ['Barra estabilizadora trasera: ablandar un poco','Barra estabilizadora delantera: endurecer un poco','Muelles traseros: ablandar','Convergencia trasera: más hacia dentro','Carga aerodinámica trasera: subir']
+      .concat(M.Us!==null&&M.Us-o.obj<-o.tol?['Se nota sobre todo al salir: bajar el bloqueo del diferencial en aceleración']:[]));
+  }else if(o)P('w','Pocos datos en curva','Solo '+M.nCur+' muestras de curva. Da más vueltas o conduce más fuerte antes de fiarte del equilibrio.',[]);
+  [['delanteros',M.botF],['traseros',M.botR]].forEach(([n,v])=>{
+    if(v!==null&&v>TEL_UMB.bottomWarn)P(v>TEL_UMB.bottomBad?'s':'w','Suspensión '+(n==='delanteros'?'delantera':'trasera')+' llega al tope ('+Math.round(v*100)+' % del tiempo)','Se agota el recorrido de compresión.',
+      ['Subir la altura '+(n==='delanteros'?'delantera':'trasera'),'Endurecer los muelles '+n,'Subir la compresión '+(n==='delanteros'?'delantera':'trasera')]);
+  });
+  const tw=use==='drag'?TEL_UMB.tracWarn*.6:TEL_UMB.tracWarn;
+  if(M.trac!==null&&M.nAcc>=30&&M.trac>tw)P(M.trac>TEL_UMB.tracBad?'s':'w','Pérdida de tracción a fondo ('+Math.round(M.trac*100)+' % del tiempo con acelerador a fondo)','Las ruedas motrices patinan al acelerar.',
+    ['Bajar el bloqueo del diferencial en aceleración','Ablandar muelles y barra del eje motriz','Presión del eje motriz: bajar un poco','Subir la carga aerodinámica del eje motriz']);
+  if(M.nBrk>=20){
+    const f=M.lockF||0,r=M.lockR||0;
+    if(Math.max(f,r)>TEL_UMB.lockWarn)P(Math.max(f,r)>TEL_UMB.lockBad?'s':'w','Bloqueo al frenar ('+(r>f?'traseras':'delanteras')+')','Las ruedas '+(r>f?'traseras':'delanteras')+' se bloquean primero.',
+      [r>f?'Equilibrio de frenos: llevarlo hacia delante':'Equilibrio de frenos: llevarlo hacia atrás','Presión de frenos: bajarla un poco']);
+  }
+  if(M.tFR&&Math.abs(M.tFR-1)>TEL_UMB.tempDiff)P('','Temperatura de neumáticos descompensada','Los '+(M.tFR>1?'delanteros':'traseros')+' trabajan '+Math.round(Math.abs(M.tFR-1)*100)+' % más calientes que los '+(M.tFR>1?'traseros':'delanteros')+'. Orientativo, no cambia nada por sí solo.',[]);
+  if(M.tLD&&Math.abs(M.tLD-1)>TEL_UMB.tempDiff)P('','Lado izquierdo y derecho distintos en temperatura',(M.tLD>1?'Izquierdo':'Derecho')+' más caliente ('+Math.round(Math.abs(M.tLD-1)*100)+' %). Normal en circuitos con más curvas a un lado.',[]);
+  if((use==='dirt'||use==='cross')&&M.rF&&M.rR&&Math.max(M.rF[1]-M.rF[0],M.rR[1]-M.rR[0])<0.2)P('w','Poco recorrido de suspensión usado','En tierra interesa usar más recorrido.',['Ablandar los muelles','Subir un poco la altura']);
+  return R;
+}
+function tlAnalyze(){
+  const S=tl.S;
+  if(S.length<60){$('tlRecSt').innerHTML='Muy pocos datos ('+S.length+' muestras). Conduce al menos unos 30 s antes de detener.';$('tlRes').hidden=true;return}
+  const use=$('tlUse').value,M=tlMetrics(S),recs=tlRecs(M,use);
+  const f=(v,d)=>v===null||v===undefined?'–':(+v).toFixed(d),pc=v=>v===null||v===undefined?'–':Math.round(v*100)+' %';
+  const pv=tl.prev&&tl.prev.use===use?tl.prev.M:null;
+  const dl=(a,b,d,pcnt)=>pv&&a!==null&&b!==null?' <span class="tl-small">('+(a-b>=0?'+':'')+(pcnt?Math.round((a-b)*100)+' pts':(a-b).toFixed(d))+' vs. anterior)</span>':'';
+  const rows=[['Muestras de conducción',M.nOk,''],['Muestras en curva',M.nCur,''],
+    ['Subviraje (+) / sobreviraje (−), total',f(M.U,2),dl(M.U,pv&&pv.U,2)],['… al entrar (frenando)',f(M.Ue,2),''],['… a mitad de curva',f(M.Um,2),''],['… al salir (acelerando)',f(M.Us,2),''],
+    ['Suspensión delantera al tope',pc(M.botF),dl(M.botF,pv&&pv.botF,0,1)],['Suspensión trasera al tope',pc(M.botR),dl(M.botR,pv&&pv.botR,0,1)],
+    ['Ruedas motrices patinando a fondo',pc(M.trac),dl(M.trac,pv&&pv.trac,0,1)],['Bloqueo al frenar, del. / tras.',pc(M.lockF)+' / '+pc(M.lockR),''],
+    ['Vueltas registradas',M.lap,''],['Mejor vuelta del juego',M.best>0?M.best.toFixed(2)+' s':'–','']];
+  $('tlOut').innerHTML='<table class="tl-met">'+rows.map(r=>'<tr><th>'+r[0]+'</th><td class="n">'+r[1]+r[2]+'</td></tr>').join('')+'</table>'+
+    '<h3 style="margin-top:16px">Qué tocar</h3><div style="display:grid;gap:10px;margin-top:8px">'+
+    (recs.length?recs.map(x=>'<div class="tl-rec '+x.sev+'"><h4>'+x.t+'</h4><p>'+x.w+'</p>'+(x.a.length?'<ul>'+x.a.map(a=>'<li>'+a+'</li>').join('')+'</ul>':'')+'</div>').join(''):'<div class="tl-rec"><h4>Sin problemas detectados</h4><p>Con los umbrales actuales no hay nada que corregir.</p></div>')+
+    '</div><p class="tl-small" style="margin-top:12px">Son indicaciones de dirección, no valores exactos: cambia una cosa a la vez, en pasos pequeños, y repite la prueba. Los umbrales son valores de partida sin calibrar con datos reales.</p>';
+  $('tlRes').hidden=false;tl.prev={use:use,M:M};
+  $('tlRecSt').textContent='Análisis listo con '+S.length+' muestras. Puedes iniciar otra prueba para compararla.';
+}
+function tlInit(){
+  const u=$('use'),s=$('tlUse');
+  s.innerHTML=u.innerHTML;s.value=u.value;
+  $('tlConn').addEventListener('click',tlConnect);$('tlRec').addEventListener('click',tlToggle);$('tlClr').addEventListener('click',tlClear);
+}
+
 loadProfiles();
+tlInit();
 refreshLabels();
 initCars();
 renderDiag();

@@ -1,1145 +1,1179 @@
 {
- "id": "toyota-86-2013",
- "year": 2013,
- "maker": "Toyota",
- "name": "86",
- "rarity": "Raro",
- "price": 15000,
- "pi": 460,
- "drive": "rwd",
- "weight": 1240,
- "front": 55,
- "hp": 197,
- "torque": 205,
- "disp": 2,
- "stats": {
-  "vel": 5.5,
-  "man": 4.6,
-  "ace": 4.2,
-  "ac0": 3.6,
-  "fre": 3.2,
-  "tod": 5.2
- },
- "engine": [
-  {
-   "k": "intake",
-   "n": "Admisión de aire",
-   "opts": [
-    {
-     "n": "Callejera",
-     "hp": 4,
-     "pi": 466,
-     "cr": 600
-    },
-    {
-     "n": "Deportiva",
-     "hp": 9,
-     "pi": 471,
-     "cr": 1200
-    },
-    {
-     "n": "Carreras",
-     "hp": 13,
-     "pi": 474,
-     "cr": 1800
-    }
-   ]
+  "id": "toyota-86-2013",
+  "year": 2013,
+  "maker": "Toyota",
+  "name": "86",
+  "rarity": "Raro",
+  "price": 15000,
+  "pi": 460,
+  "drive": "rwd",
+  "weight": 1240,
+  "front": 55,
+  "hp": 197,
+  "torque": 205,
+  "disp": 2,
+  "stats": {
+    "vel": 5.5,
+    "man": 4.6,
+    "ace": 4.2,
+    "ac0": 3.6,
+    "fre": 3.2,
+    "tod": 5.2
   },
-  {
-   "k": "manifold",
-   "n": "Colector de admisión y cuerpo regulador",
-   "opts": [
+  "engine": [
     {
-     "n": "Deportivo",
-     "hp": 11,
-     "pi": 472,
-     "cr": 1450
+      "k": "intake",
+      "n": "Admisión de aire",
+      "opts": [
+        {
+          "n": "Callejera",
+          "hp": 4,
+          "pi": 466,
+          "cr": 600
+        },
+        {
+          "n": "Deportiva",
+          "hp": 9,
+          "pi": 471,
+          "cr": 1200
+        },
+        {
+          "n": "Carreras",
+          "hp": 13,
+          "pi": 474,
+          "cr": 1800
+        }
+      ]
     },
     {
-     "n": "Carreras",
-     "hp": 18,
-     "pi": 478,
-     "cr": 2200
-    }
-   ],
-   "hideIf": {
-    "aspiration": [
-     0,
-     1
-    ]
-   }
-  },
-  {
-   "k": "fuel",
-   "n": "Sistema de combustible",
-   "opts": [
-    {
-     "n": "Carreras",
-     "hp": 19,
-     "pi": 478,
-     "cr": 2200
-    }
-   ]
-  },
-  {
-   "k": "ignition",
-   "n": "Encendido",
-   "opts": [
-    {
-     "n": "Carreras",
-     "hp": 16,
-     "pi": 476,
-     "cr": 1950
-    }
-   ]
-  },
-  {
-   "k": "exhaust",
-   "n": "Escape",
-   "opts": [
-    {
-     "n": "Deportivo",
-     "hp": 14,
-     "pi": 475,
-     "cr": 1350
-    },
-    {
-     "n": "Carreras",
-     "hp": 22,
-     "pi": 482,
-     "cr": 2050
-    }
-   ]
-  },
-  {
-   "k": "cams",
-   "n": "Árbol de levas",
-   "opts": [
-    {
-     "n": "Deportivas",
-     "hp": 25,
-     "pi": 480,
-     "cr": 2000
-    },
-    {
-     "n": "Carreras",
-     "hp": 41,
-     "pi": 491,
-     "cr": 3000
-    }
-   ]
-  },
-  {
-   "k": "valves",
-   "n": "Válvulas",
-   "opts": [
-    {
-     "n": "Callejeras",
-     "hp": 5,
-     "pi": 466,
-     "cr": 1000
-    },
-    {
-     "n": "Deportivas",
-     "hp": 9,
-     "pi": 471,
-     "cr": 2000
-    },
-    {
-     "n": "Carreras",
-     "hp": 15,
-     "pi": 475,
-     "cr": 3000
-    }
-   ]
-  },
-  {
-   "k": "block",
-   "n": "Cilindrada (bloque motor)",
-   "opts": [
-    {
-     "n": "Callejero",
-     "hp": 8,
-     "pi": 470,
-     "cr": 1100
-    },
-    {
-     "n": "Deportivo",
-     "hp": 18,
-     "pi": 477,
-     "cr": 2100
-    },
-    {
-     "n": "Carreras",
-     "hp": 28,
-     "pi": 484,
-     "cr": 3200
-    }
-   ]
-  },
-  {
-   "k": "pistons",
-   "n": "Pistones y compresión",
-   "opts": [
-    {
-     "n": "Carreras",
-     "hp": 19,
-     "pi": 478,
-     "cr": 3200
-    }
-   ]
-  },
-  {
-   "k": "turbo",
-   "n": "Turbo único",
-   "showIf": {
-    "aspiration": [
-     0
-    ]
-   },
-   "opts": [
-    {
-     "n": "Turbo deportivo",
-     "hp": 51,
-     "pi": 532,
-     "dpi": 19,
-     "cr": 3600
-    },
-    {
-     "n": "Turbo de carreras",
-     "hp": 85,
-     "pi": 540,
-     "dpi": 27,
-     "cr": 5400
-    },
-    {
-     "n": "Turbo de carreras con antirretraso",
-     "hp": 85,
-     "pi": 549,
-     "dpi": 36,
-     "cr": 7200
-    }
-   ]
-  },
-  {
-   "k": "supercharger",
-   "n": "Supercargador centrífugo",
-   "showIf": {
-    "aspiration": [
-     1
-    ]
-   },
-   "opts": [
-    {
-     "n": "Supercargador centrífugo deportivo",
-     "hp": 22,
-     "pi": 484,
-     "dpi": 8,
-     "cr": 3600
-    },
-    {
-     "n": "Supercargador centrífugo de carreras",
-     "hp": 38,
-     "pi": 492,
-     "dpi": 16,
-     "cr": 5400
-    }
-   ]
-  },
-  {
-   "k": "intercooler",
-   "n": "Intercooler",
-   "showIf": {
-    "aspiration": [
-     0,
-     1
-    ]
-   },
-   "opts": [
-    {
-     "n": "Intercooler callejero",
-     "hp": 4,
-     "pi": 512,
-     "dpi": -1,
-     "cr": 750
-    },
-    {
-     "n": "Intercooler deportivo",
-     "hp": 10,
-     "pi": 513,
-     "dpi": 0,
-     "cr": 1450
-    },
-    {
-     "n": "Intercooler de carrera",
-     "hp": 18,
-     "pi": 517,
-     "dpi": 4,
-     "cr": 2200
-    }
-   ]
-  },
-  {
-   "k": "oil",
-   "n": "Aceite y refrigeración",
-   "opts": [
-    {
-     "n": "Deportivo",
-     "hp": 6,
-     "pi": 468,
-     "cr": 1400
-    },
-    {
-     "n": "Carreras",
-     "hp": 9,
-     "pi": 470,
-     "cr": 2100
-    }
-   ]
-  },
-  {
-   "k": "flywheel",
-   "n": "Volante motor",
-   "opts": [
-    {
-     "n": "Callejero",
-     "hp": 0,
-     "kg": -1,
-     "pi": 461,
-     "cr": 800
-    },
-    {
-     "n": "Deportivo",
-     "hp": 0,
-     "kg": -2,
-     "pi": 462,
-     "cr": 1600
-    },
-    {
-     "n": "Carreras",
-     "hp": 0,
-     "kg": -4,
-     "pi": 464,
-     "cr": 2400
-    }
-   ]
-  }
- ],
- "chassis": [
-  {
-   "k": "brakes",
-   "n": "Frenos",
-   "opts": [
-    {
-     "n": "Deportivos",
-     "hp": 0,
-     "fx": "Frenado +16 %",
-     "pi": 465,
-     "cr": 1300
-    },
-    {
-     "n": "Carreras",
-     "hp": 0,
-     "fx": "Frenado +34 %",
-     "pi": 469,
-     "cr": 1950,
-     "unlock": "brakes"
-    }
-   ]
-  },
-  {
-   "k": "springs",
-   "n": "Muelles y amortiguadores",
-   "opts": [
-    {
-     "n": "Callejeros",
-     "hp": 0,
-     "fx": "Altura -0.8 cm",
-     "pi": 460,
-     "cr": 700
-    },
-    {
-     "n": "Deportivos",
-     "hp": 0,
-     "fx": "Altura -2.4 cm",
-     "pi": 461,
-     "cr": 1350
-    },
-    {
-     "n": "Carreras",
-     "hp": 0,
-     "fx": "Altura -4.0 cm",
-     "pi": 462,
-     "cr": 2050,
-     "unlock": "springs",
-     "rng": {
-      "unit": "kgf",
-      "kF": [
-       50.5,
-       252.4
+      "k": "manifold",
+      "n": "Colector de admisión y cuerpo regulador",
+      "opts": [
+        {
+          "n": "Deportivo",
+          "hp": 11,
+          "pi": 472,
+          "cr": 1450
+        },
+        {
+          "n": "Carreras",
+          "hp": 18,
+          "pi": 478,
+          "cr": 2200
+        }
       ],
-      "kR": [
-       50.5,
-       252.4
+      "hideIf": {
+        "aspiration": [
+          0,
+          1
+        ]
+      }
+    },
+    {
+      "k": "fuel",
+      "n": "Sistema de combustible",
+      "opts": [
+        {
+          "n": "Carreras",
+          "hp": 19,
+          "pi": 478,
+          "cr": 2200
+        }
       ]
-     }
     },
     {
-     "n": "Rally",
-     "hp": 0,
-     "fx": "Altura +2.3 cm",
-     "pi": 461,
-     "cr": 2050,
-     "unlock": "springs",
-     "rng": {
-      "unit": "kgf",
-      "kF": [
-       25.3,
-       126.4
-      ],
-      "kR": [
-       43.6,
-       126.4
+      "k": "ignition",
+      "n": "Encendido",
+      "opts": [
+        {
+          "n": "Carreras",
+          "hp": 16,
+          "pi": 476,
+          "cr": 1950
+        }
       ]
-     }
     },
     {
-     "n": "Derrape",
-     "hp": 0,
-     "fx": "Altura -4.8 cm",
-     "pi": 462,
-     "cr": 2050,
-     "unlock": "springs",
-     "rng": {
-      "unit": "kgf",
-      "kF": [
-       50.5,
-       252.4
-      ],
-      "kR": [
-       50.5,
-       252.4
+      "k": "exhaust",
+      "n": "Escape",
+      "opts": [
+        {
+          "n": "Deportivo",
+          "hp": 14,
+          "pi": 475,
+          "cr": 1350
+        },
+        {
+          "n": "Carreras",
+          "hp": 22,
+          "pi": 482,
+          "cr": 2050
+        }
       ]
-     }
+    },
+    {
+      "k": "cams",
+      "n": "Árbol de levas",
+      "opts": [
+        {
+          "n": "Deportivas",
+          "hp": 25,
+          "pi": 480,
+          "cr": 2000
+        },
+        {
+          "n": "Carreras",
+          "hp": 41,
+          "pi": 491,
+          "cr": 3000
+        }
+      ]
+    },
+    {
+      "k": "valves",
+      "n": "Válvulas",
+      "opts": [
+        {
+          "n": "Callejeras",
+          "hp": 5,
+          "pi": 466,
+          "cr": 1000
+        },
+        {
+          "n": "Deportivas",
+          "hp": 9,
+          "pi": 471,
+          "cr": 2000
+        },
+        {
+          "n": "Carreras",
+          "hp": 15,
+          "pi": 475,
+          "cr": 3000
+        }
+      ]
+    },
+    {
+      "k": "block",
+      "n": "Cilindrada (bloque motor)",
+      "opts": [
+        {
+          "n": "Callejero",
+          "hp": 8,
+          "pi": 470,
+          "cr": 1100
+        },
+        {
+          "n": "Deportivo",
+          "hp": 18,
+          "pi": 477,
+          "cr": 2100
+        },
+        {
+          "n": "Carreras",
+          "hp": 28,
+          "pi": 484,
+          "cr": 3200
+        }
+      ]
+    },
+    {
+      "k": "pistons",
+      "n": "Pistones y compresión",
+      "opts": [
+        {
+          "n": "Carreras",
+          "hp": 19,
+          "pi": 478,
+          "cr": 3200
+        }
+      ]
+    },
+    {
+      "k": "turbo",
+      "n": "Turbo único",
+      "showIf": {
+        "aspiration": [
+          0
+        ]
+      },
+      "opts": [
+        {
+          "n": "Turbo deportivo",
+          "hp": 51,
+          "pi": 532,
+          "dpi": 19,
+          "cr": 3600
+        },
+        {
+          "n": "Turbo de carreras",
+          "hp": 85,
+          "pi": 540,
+          "dpi": 27,
+          "cr": 5400
+        },
+        {
+          "n": "Turbo de carreras con antirretraso",
+          "hp": 85,
+          "pi": 549,
+          "dpi": 36,
+          "cr": 7200
+        }
+      ]
+    },
+    {
+      "k": "supercharger",
+      "n": "Supercargador centrífugo",
+      "showIf": {
+        "aspiration": [
+          1
+        ]
+      },
+      "opts": [
+        {
+          "n": "Supercargador centrífugo deportivo",
+          "hp": 22,
+          "pi": 484,
+          "dpi": 8,
+          "cr": 3600
+        },
+        {
+          "n": "Supercargador centrífugo de carreras",
+          "hp": 38,
+          "pi": 492,
+          "dpi": 16,
+          "cr": 5400
+        }
+      ]
+    },
+    {
+      "k": "intercooler",
+      "n": "Intercooler",
+      "showIf": {
+        "aspiration": [
+          0,
+          1
+        ]
+      },
+      "opts": [
+        {
+          "n": "Intercooler callejero",
+          "hp": 4,
+          "pi": 512,
+          "dpi": -1,
+          "cr": 750
+        },
+        {
+          "n": "Intercooler deportivo",
+          "hp": 10,
+          "pi": 513,
+          "dpi": 0,
+          "cr": 1450
+        },
+        {
+          "n": "Intercooler de carrera",
+          "hp": 18,
+          "pi": 517,
+          "dpi": 4,
+          "cr": 2200
+        }
+      ]
+    },
+    {
+      "k": "oil",
+      "n": "Aceite y refrigeración",
+      "opts": [
+        {
+          "n": "Deportivo",
+          "hp": 6,
+          "pi": 468,
+          "cr": 1400
+        },
+        {
+          "n": "Carreras",
+          "hp": 9,
+          "pi": 470,
+          "cr": 2100
+        }
+      ]
+    },
+    {
+      "k": "flywheel",
+      "n": "Volante motor",
+      "opts": [
+        {
+          "n": "Callejero",
+          "hp": 0,
+          "kg": -1,
+          "pi": 461,
+          "cr": 800
+        },
+        {
+          "n": "Deportivo",
+          "hp": 0,
+          "kg": -2,
+          "pi": 462,
+          "cr": 1600
+        },
+        {
+          "n": "Carreras",
+          "hp": 0,
+          "kg": -4,
+          "pi": 464,
+          "cr": 2400
+        }
+      ]
     }
-   ]
+  ],
+  "chassis": [
+    {
+      "k": "brakes",
+      "n": "Frenos",
+      "opts": [
+        {
+          "n": "Deportivos",
+          "hp": 0,
+          "fx": "Frenado +16 %",
+          "pi": 465,
+          "cr": 1300
+        },
+        {
+          "n": "Carreras",
+          "hp": 0,
+          "fx": "Frenado +34 %",
+          "pi": 469,
+          "cr": 1950,
+          "unlock": "brakes"
+        }
+      ]
+    },
+    {
+      "k": "springs",
+      "n": "Muelles y amortiguadores",
+      "opts": [
+        {
+          "n": "Callejeros",
+          "hp": 0,
+          "fx": "Altura -0.8 cm",
+          "pi": 460,
+          "cr": 700
+        },
+        {
+          "n": "Deportivos",
+          "hp": 0,
+          "fx": "Altura -2.4 cm",
+          "pi": 461,
+          "cr": 1350
+        },
+        {
+          "n": "Carreras",
+          "hp": 0,
+          "fx": "Altura -4.0 cm",
+          "pi": 462,
+          "cr": 2050,
+          "unlock": "springs",
+          "rng": {
+            "unit": "kgf",
+            "kF": [
+              50.5,
+              252.4
+            ],
+            "kR": [
+              50.5,
+              252.4
+            ],
+            "hF": [
+              11.2,
+              16.0
+            ],
+            "hR": [
+              11.2,
+              16.0
+            ],
+            "def": {
+              "kF": 126.6,
+              "kR": 114.7
+            }
+          }
+        },
+        {
+          "n": "Rally",
+          "hp": 0,
+          "fx": "Altura +2.3 cm",
+          "pi": 461,
+          "cr": 2050,
+          "unlock": "springs",
+          "rng": {
+            "unit": "kgf",
+            "kF": [
+              25.3,
+              126.4
+            ],
+            "kR": [
+              43.6,
+              126.4
+            ],
+            "hF": [
+              14.0,
+              18.3
+            ],
+            "hR": [
+              14.0,
+              18.3
+            ],
+            "def": {
+              "kF": 53.3,
+              "kR": 43.6
+            }
+          }
+        },
+        {
+          "n": "Derrape",
+          "hp": 0,
+          "fx": "Altura -4.8 cm",
+          "pi": 462,
+          "cr": 2050,
+          "unlock": "springs",
+          "rng": {
+            "unit": "kgf",
+            "kF": [
+              50.5,
+              252.4
+            ],
+            "kR": [
+              50.5,
+              252.4
+            ],
+            "hF": [
+              11.2,
+              16.0
+            ],
+            "hR": [
+              11.2,
+              16.0
+            ],
+            "def": {
+              "kF": 126.6,
+              "kR": 114.7
+            }
+          }
+        }
+      ]
+    },
+    {
+      "k": "arbF",
+      "n": "Barras estabilizadoras delanteras",
+      "opts": [
+        {
+          "n": "Deportivas",
+          "hp": 0,
+          "fx": "Sin ajuste manual",
+          "pi": 460,
+          "cr": 1250
+        },
+        {
+          "n": "Carreras",
+          "hp": 0,
+          "fx": "Ajuste de rigidez",
+          "pi": 460,
+          "cr": 1900,
+          "unlock": "arbF"
+        }
+      ]
+    },
+    {
+      "k": "arbR",
+      "n": "Barras estabilizadoras traseras",
+      "opts": [
+        {
+          "n": "Deportivas",
+          "hp": 0,
+          "fx": "Sin ajuste manual",
+          "pi": 460,
+          "cr": 1250
+        },
+        {
+          "n": "Carreras",
+          "hp": 0,
+          "fx": "Ajuste de rigidez",
+          "pi": 460,
+          "cr": 1900,
+          "unlock": "arbR"
+        }
+      ]
+    },
+    {
+      "k": "reinf",
+      "n": "Refuerzo del chasis y jaula antivuelco",
+      "opts": [
+        {
+          "n": "Deportivo",
+          "hp": 0,
+          "kg": 15,
+          "pi": 461,
+          "cr": 1400
+        },
+        {
+          "n": "Carreras",
+          "hp": 0,
+          "kg": 36,
+          "pi": 462,
+          "cr": 2100
+        }
+      ]
+    },
+    {
+      "k": "weight",
+      "n": "Reducción de peso",
+      "opts": [
+        {
+          "n": "Callejera",
+          "hp": 0,
+          "kg": -26,
+          "pi": 464,
+          "cr": 800
+        },
+        {
+          "n": "Deportiva",
+          "hp": 0,
+          "kg": -105,
+          "pi": 477,
+          "cr": 1550
+        },
+        {
+          "n": "Carreras",
+          "hp": 0,
+          "kg": -192,
+          "pi": 490,
+          "cr": 2350
+        }
+      ]
+    }
+  ],
+  "drivetrain": [
+    {
+      "k": "clutch",
+      "n": "Embrague",
+      "opts": [
+        {
+          "n": "Callejero",
+          "hp": 0,
+          "fx": "Cambio -0.05 s",
+          "pi": 460,
+          "cr": 750
+        },
+        {
+          "n": "Deportivo",
+          "hp": 0,
+          "fx": "Cambio -0.09 s",
+          "pi": 461,
+          "cr": 1500
+        },
+        {
+          "n": "Carreras",
+          "hp": 0,
+          "fx": "Cambio -0.11 s",
+          "pi": 462,
+          "cr": 2250
+        }
+      ]
+    },
+    {
+      "k": "gearbox",
+      "n": "Transmisión",
+      "opts": [
+        {
+          "n": "Deportiva",
+          "hp": 0,
+          "fx": "Cambio -0.04 s",
+          "pi": 461,
+          "cr": 1600,
+          "unlock": "gearFinal"
+        },
+        {
+          "n": "Carreras",
+          "hp": 0,
+          "fx": "Cambio -0.55 s",
+          "pi": 467,
+          "cr": 2400,
+          "unlock": "gears"
+        },
+        {
+          "n": "Carreras 7 vel.",
+          "hp": 0,
+          "fx": "Cambio -0.55 s",
+          "pi": 467,
+          "cr": 3000,
+          "unlock": "gears"
+        },
+        {
+          "n": "Carreras 8 vel.",
+          "hp": 0,
+          "fx": "Cambio -0.55 s",
+          "pi": 467,
+          "cr": 3000,
+          "unlock": "gears"
+        },
+        {
+          "n": "Carreras 9 vel.",
+          "hp": 0,
+          "fx": "Cambio -0.55 s",
+          "pi": 467,
+          "cr": 3000,
+          "unlock": "gears"
+        },
+        {
+          "n": "Carreras 10 vel.",
+          "hp": 0,
+          "fx": "Cambio -0.55 s",
+          "pi": 466,
+          "cr": 3000,
+          "unlock": "gears"
+        },
+        {
+          "n": "Derrape 4 vel.",
+          "hp": 0,
+          "fx": "Cambio -0.55 s",
+          "pi": 468,
+          "cr": 3000,
+          "unlock": "gears"
+        }
+      ]
+    },
+    {
+      "k": "driveshaft",
+      "n": "Eje de transmisión",
+      "opts": [
+        {
+          "n": "Callejero",
+          "hp": 0,
+          "kg": -1.0,
+          "pi": 460,
+          "cr": 700
+        },
+        {
+          "n": "Deportivo",
+          "hp": 0,
+          "kg": -3.8,
+          "pi": 461,
+          "cr": 1400
+        },
+        {
+          "n": "Carreras",
+          "hp": 0,
+          "kg": -6.9,
+          "pi": 461,
+          "cr": 2100
+        }
+      ]
+    },
+    {
+      "k": "diff",
+      "n": "Diferencial",
+      "opts": [
+        {
+          "n": "Deportivo (1.5 sentidos)",
+          "hp": 0,
+          "fx": "Ajuste de aceleración",
+          "pi": 460,
+          "cr": 1500,
+          "unlock": "diffAccel"
+        },
+        {
+          "n": "Carreras (2 sentidos)",
+          "hp": 0,
+          "fx": "Ajuste completo",
+          "pi": 460,
+          "cr": 2250,
+          "unlock": "diffFull"
+        },
+        {
+          "n": "Rally (2 sentidos)",
+          "hp": 0,
+          "fx": "Ajuste completo",
+          "pi": 460,
+          "cr": 2500,
+          "unlock": "diffFull"
+        },
+        {
+          "n": "Derrape (2 sentidos)",
+          "hp": 0,
+          "fx": "Ajuste completo",
+          "pi": 460,
+          "cr": 2500,
+          "unlock": "diffFull"
+        },
+        {
+          "n": "Todoterreno (2 sentidos)",
+          "hp": 0,
+          "fx": "Ajuste completo",
+          "pi": 460,
+          "cr": 2500,
+          "unlock": "diffFull"
+        }
+      ]
+    }
+  ],
+  "perf": {
+    "top": 233.9,
+    "a97": 6.233,
+    "a161": 15.817,
+    "brk97": 34.5,
+    "brk161": 80.6,
+    "g97": 0.91,
+    "g193": 0.9,
+    "tire": 2.1
   },
-  {
-   "k": "arbF",
-   "n": "Barras estabilizadoras delanteras",
-   "opts": [
+  "missing": [
+    "calibración de la escala de los muelles (con los rangos del juego salen siempre en el mínimo)"
+  ],
+  "aero": [
     {
-     "n": "Deportivas",
-     "hp": 0,
-     "fx": "Sin ajuste manual",
-     "pi": 460,
-     "cr": 1250
+      "k": "bumperF",
+      "n": "Parachoques delantero",
+      "opts": [
+        {
+          "n": "West (callejero)",
+          "hp": 0,
+          "fx": "No ajustable",
+          "pi": 460,
+          "cr": 1000
+        },
+        {
+          "n": "R Magic (callejero)",
+          "hp": 0,
+          "fx": "No ajustable",
+          "pi": 460,
+          "cr": 1000
+        },
+        {
+          "n": "Garage Vary",
+          "hp": 0,
+          "fx": "No ajustable",
+          "pi": 460,
+          "cr": 1000
+        },
+        {
+          "n": "INGS (callejero)",
+          "hp": 0,
+          "fx": "No ajustable",
+          "pi": 460,
+          "cr": 1000
+        },
+        {
+          "n": "Forza Horizon 6 (competencia)",
+          "hp": 0,
+          "fx": "Ajustable",
+          "pi": 458,
+          "cr": 5000,
+          "unlock": "aeroF",
+          "rng": {
+            "aF": [
+              53,
+              88
+            ]
+          }
+        }
+      ]
     },
     {
-     "n": "Carreras",
-     "hp": 0,
-     "fx": "Ajuste de rigidez",
-     "pi": 460,
-     "cr": 1900,
-     "unlock": "arbF"
+      "k": "wing",
+      "n": "Alerón trasero",
+      "opts": [
+        {
+          "n": "INGS (callejero)",
+          "hp": 0,
+          "fx": "No ajustable",
+          "pi": 460,
+          "cr": 1000
+        },
+        {
+          "n": "Rocket Bunny (deportivo)",
+          "hp": 0,
+          "fx": "No ajustable",
+          "pi": 460,
+          "cr": 2500
+        },
+        {
+          "n": "Forza Horizon 6 (competencia)",
+          "hp": 0,
+          "fx": "Ajustable",
+          "pi": 450,
+          "cr": 5000,
+          "unlock": "aeroR",
+          "rng": {
+            "aR": [
+              86,
+              144
+            ]
+          }
+        },
+        {
+          "n": "Big Country Labs (competencia)",
+          "hp": 0,
+          "fx": "Ajustable",
+          "pi": 450,
+          "cr": 5000,
+          "unlock": "aeroR",
+          "rng": {
+            "aR": [
+              86,
+              144
+            ]
+          }
+        },
+        {
+          "n": "Quitar alerón",
+          "hp": 0,
+          "fx": "Sin alerón",
+          "pi": 460,
+          "cr": 1000
+        }
+      ]
+    },
+    {
+      "k": "bumperR",
+      "n": "Parachoques trasero",
+      "opts": [
+        {
+          "n": "West (callejero)",
+          "hp": 0,
+          "fx": "No ajustable",
+          "pi": 460,
+          "cr": 1000
+        },
+        {
+          "n": "INGS (callejero)",
+          "hp": 0,
+          "fx": "No ajustable",
+          "pi": 460,
+          "cr": 1000
+        }
+      ]
+    },
+    {
+      "k": "skirts",
+      "n": "Faldones laterales",
+      "opts": [
+        {
+          "n": "West (callejero)",
+          "hp": 0,
+          "fx": "Arrastre -1 %",
+          "pi": 460,
+          "cr": 1000
+        }
+      ]
     }
-   ]
-  },
-  {
-   "k": "arbR",
-   "n": "Barras estabilizadoras traseras",
-   "opts": [
+  ],
+  "wheels": [
     {
-     "n": "Deportivas",
-     "hp": 0,
-     "fx": "Sin ajuste manual",
-     "pi": 460,
-     "cr": 1250
+      "k": "tires",
+      "n": "Compuesto de las llantas",
+      "opts": [
+        {
+          "n": "Callejeras",
+          "hp": 0,
+          "fx": "Agarre +0.06",
+          "pi": 477,
+          "cr": 2000,
+          "tire": "street"
+        },
+        {
+          "n": "Deportivas",
+          "hp": 0,
+          "fx": "Agarre +0.18",
+          "pi": 506,
+          "cr": 5000,
+          "tire": "sport"
+        },
+        {
+          "n": "Semilisas de competición",
+          "hp": 0,
+          "fx": "Agarre +0.30",
+          "pi": 530,
+          "cr": 10000,
+          "tire": "semi"
+        },
+        {
+          "n": "Semilisas \"Horizon\"",
+          "hp": 0,
+          "fx": "Agarre +0.30",
+          "pi": 530,
+          "cr": 10000,
+          "tire": "semi"
+        },
+        {
+          "n": "Carreras",
+          "hp": 0,
+          "fx": "Agarre +0.34",
+          "pi": 539,
+          "cr": 10000,
+          "tire": "slick"
+        },
+        {
+          "n": "Derrape",
+          "hp": 0,
+          "fx": "Agarre +0.20",
+          "pi": 508,
+          "cr": 10000,
+          "tire": "sport"
+        },
+        {
+          "n": "Rally",
+          "hp": 0,
+          "fx": "Agarre +0.21",
+          "pi": 509,
+          "cr": 10000,
+          "tire": "rally"
+        },
+        {
+          "n": "Carreras todoterreno",
+          "hp": 0,
+          "fx": "Agarre +0.15",
+          "pi": 493,
+          "cr": 10000,
+          "tire": "offroad"
+        }
+      ]
     },
     {
-     "n": "Carreras",
-     "hp": 0,
-     "fx": "Ajuste de rigidez",
-     "pi": 460,
-     "cr": 1900,
-     "unlock": "arbR"
+      "k": "tireF",
+      "n": "Ancho de llanta delantera",
+      "opts": [
+        {
+          "n": "225 mm",
+          "hp": 0,
+          "fx": "225/45R17",
+          "pi": 461,
+          "cr": 1800
+        },
+        {
+          "n": "245 mm",
+          "hp": 0,
+          "fx": "245/40R17",
+          "pi": 466,
+          "cr": 2200
+        },
+        {
+          "n": "255 mm",
+          "hp": 0,
+          "fx": "255/40R17",
+          "pi": 465,
+          "cr": 2400
+        }
+      ]
+    },
+    {
+      "k": "tireR",
+      "n": "Ancho de llanta trasera",
+      "opts": [
+        {
+          "n": "235 mm",
+          "hp": 0,
+          "fx": "235/40R17",
+          "pi": 462,
+          "cr": 2000
+        },
+        {
+          "n": "255 mm",
+          "hp": 0,
+          "fx": "255/40R17",
+          "pi": 465,
+          "cr": 2400
+        },
+        {
+          "n": "265 mm",
+          "hp": 0,
+          "fx": "265/35R17",
+          "pi": 465,
+          "cr": 2600
+        },
+        {
+          "n": "275 mm",
+          "hp": 0,
+          "fx": "275/35R17",
+          "pi": 465,
+          "cr": 2800
+        },
+        {
+          "n": "285 mm",
+          "hp": 0,
+          "fx": "285/35R17",
+          "pi": 465,
+          "cr": 3000
+        },
+        {
+          "n": "295 mm",
+          "hp": 0,
+          "fx": "295/35R17",
+          "pi": 465,
+          "cr": 3200
+        }
+      ]
+    },
+    {
+      "k": "trackF",
+      "n": "Ancho de vía delantero",
+      "opts": [
+        {
+          "n": "Nivel 1",
+          "hp": 0,
+          "fx": "Más ancho (nivel 1)",
+          "pi": 460,
+          "cr": 100
+        },
+        {
+          "n": "Nivel 2",
+          "hp": 0,
+          "fx": "Más ancho (nivel 2)",
+          "pi": 460,
+          "cr": 200
+        },
+        {
+          "n": "Nivel 3",
+          "hp": 0,
+          "fx": "Más ancho (nivel 3)",
+          "pi": 460,
+          "cr": 300
+        }
+      ]
+    },
+    {
+      "k": "trackR",
+      "n": "Ancho de vía trasero",
+      "opts": [
+        {
+          "n": "Nivel 1",
+          "hp": 0,
+          "fx": "Más ancho (nivel 1)",
+          "pi": 460,
+          "cr": 100
+        },
+        {
+          "n": "Nivel 2",
+          "hp": 0,
+          "fx": "Más ancho (nivel 2)",
+          "pi": 460,
+          "cr": 200
+        },
+        {
+          "n": "Nivel 3",
+          "hp": 0,
+          "fx": "Más ancho (nivel 3)",
+          "pi": 460,
+          "cr": 300
+        }
+      ]
+    },
+    {
+      "k": "rimF",
+      "n": "Tamaño de rines delanteros",
+      "opts": [
+        {
+          "n": "18 in",
+          "hp": 0,
+          "fx": "215/40R18",
+          "pi": 460,
+          "cr": 2000
+        },
+        {
+          "n": "19 in",
+          "hp": 0,
+          "fx": "215/35R19",
+          "pi": 460,
+          "cr": 2200
+        }
+      ]
+    },
+    {
+      "k": "rimR",
+      "n": "Tamaño de rines traseros",
+      "opts": [
+        {
+          "n": "18 in",
+          "hp": 0,
+          "fx": "215/40R18",
+          "pi": 460,
+          "cr": 2000
+        },
+        {
+          "n": "19 in",
+          "hp": 0,
+          "fx": "215/35R19",
+          "pi": 460,
+          "cr": 2200
+        }
+      ]
+    },
+    {
+      "k": "rims",
+      "n": "Rines (peso)",
+      "custom": "rimkg",
+      "opts": []
     }
-   ]
-  },
-  {
-   "k": "reinf",
-   "n": "Refuerzo del chasis y jaula antivuelco",
-   "opts": [
+  ],
+  "conv": [
     {
-     "n": "Deportivo",
-     "hp": 0,
-     "kg": 15,
-     "pi": 461,
-     "cr": 1400
+      "k": "drivetrainSwap",
+      "n": "Cambio de tren motriz",
+      "opts": [
+        {
+          "n": "Tren motriz 4X4",
+          "hp": 0,
+          "fx": "Tracción total (AWD)",
+          "pi": 468,
+          "cr": 10000,
+          "drive": "awd",
+          "kg": 23,
+          "front": 2
+        }
+      ]
     },
     {
-     "n": "Carreras",
-     "hp": 0,
-     "kg": 36,
-     "pi": 462,
-     "cr": 2100
+      "k": "aspiration",
+      "n": "Aspiración",
+      "opts": [
+        {
+          "n": "Turbo único",
+          "hp": 78,
+          "pi": 513,
+          "cr": 1800
+        },
+        {
+          "n": "Supercargador centrífugo",
+          "hp": 34,
+          "pi": 476,
+          "cr": 1500
+        }
+      ]
+    },
+    {
+      "k": "bodykit",
+      "n": "Kit de carrocería",
+      "opts": [
+        {
+          "n": "Rocket Bunny - Kit de carrocería ancha",
+          "hp": 0,
+          "kg": 7,
+          "fx": "Carrocería ancha",
+          "pi": 460,
+          "cr": 5000
+        }
+      ]
     }
-   ]
-  },
-  {
-   "k": "weight",
-   "n": "Reducción de peso",
-   "opts": [
-    {
-     "n": "Callejera",
-     "hp": 0,
-     "kg": -26,
-     "pi": 464,
-     "cr": 800
-    },
-    {
-     "n": "Deportiva",
-     "hp": 0,
-     "kg": -105,
-     "pi": 477,
-     "cr": 1550
-    },
-    {
-     "n": "Carreras",
-     "hp": 0,
-     "kg": -192,
-     "pi": 490,
-     "cr": 2350
-    }
-   ]
+  ],
+  "notes": [],
+  "img": "data/img/toyota-86-2013.png",
+  "stage": {
+    "engine": "data/img/stage/toyota-86-2013/engine.jpg",
+    "all": "data/img/stage/toyota-86-2013/all.jpg",
+    "rear": "data/img/stage/toyota-86-2013/rear.jpg",
+    "fwheel": "data/img/stage/toyota-86-2013/fwheel.jpg",
+    "under": "data/img/stage/toyota-86-2013/under.jpg",
+    "frontend": "data/img/stage/toyota-86-2013/frontend.jpg",
+    "wing": "data/img/stage/toyota-86-2013/wing.jpg",
+    "side": "data/img/stage/toyota-86-2013/side.jpg",
+    "rwheel": "data/img/stage/toyota-86-2013/rwheel.jpg",
+    "cabin": "data/img/stage/toyota-86-2013/all.jpg"
   }
- ],
- "drivetrain": [
-  {
-   "k": "clutch",
-   "n": "Embrague",
-   "opts": [
-    {
-     "n": "Callejero",
-     "hp": 0,
-     "fx": "Cambio -0.05 s",
-     "pi": 460,
-     "cr": 750
-    },
-    {
-     "n": "Deportivo",
-     "hp": 0,
-     "fx": "Cambio -0.09 s",
-     "pi": 461,
-     "cr": 1500
-    },
-    {
-     "n": "Carreras",
-     "hp": 0,
-     "fx": "Cambio -0.11 s",
-     "pi": 462,
-     "cr": 2250
-    }
-   ]
-  },
-  {
-   "k": "gearbox",
-   "n": "Transmisión",
-   "opts": [
-    {
-     "n": "Deportiva",
-     "hp": 0,
-     "fx": "Cambio -0.04 s",
-     "pi": 461,
-     "cr": 1600,
-     "unlock": "gearFinal"
-    },
-    {
-     "n": "Carreras",
-     "hp": 0,
-     "fx": "Cambio -0.55 s",
-     "pi": 467,
-     "cr": 2400,
-     "unlock": "gears"
-    },
-    {
-     "n": "Carreras 7 vel.",
-     "hp": 0,
-     "fx": "Cambio -0.55 s",
-     "pi": 467,
-     "cr": 3000,
-     "unlock": "gears"
-    },
-    {
-     "n": "Carreras 8 vel.",
-     "hp": 0,
-     "fx": "Cambio -0.55 s",
-     "pi": 467,
-     "cr": 3000,
-     "unlock": "gears"
-    },
-    {
-     "n": "Carreras 9 vel.",
-     "hp": 0,
-     "fx": "Cambio -0.55 s",
-     "pi": 467,
-     "cr": 3000,
-     "unlock": "gears"
-    },
-    {
-     "n": "Carreras 10 vel.",
-     "hp": 0,
-     "fx": "Cambio -0.55 s",
-     "pi": 466,
-     "cr": 3000,
-     "unlock": "gears"
-    },
-    {
-     "n": "Derrape 4 vel.",
-     "hp": 0,
-     "fx": "Cambio -0.55 s",
-     "pi": 468,
-     "cr": 3000,
-     "unlock": "gears"
-    }
-   ]
-  },
-  {
-   "k": "driveshaft",
-   "n": "Eje de transmisión",
-   "opts": [
-    {
-     "n": "Callejero",
-     "hp": 0,
-     "kg": -1.0,
-     "pi": 460,
-     "cr": 700
-    },
-    {
-     "n": "Deportivo",
-     "hp": 0,
-     "kg": -3.8,
-     "pi": 461,
-     "cr": 1400
-    },
-    {
-     "n": "Carreras",
-     "hp": 0,
-     "kg": -6.9,
-     "pi": 461,
-     "cr": 2100
-    }
-   ]
-  },
-  {
-   "k": "diff",
-   "n": "Diferencial",
-   "opts": [
-    {
-     "n": "Deportivo (1.5 sentidos)",
-     "hp": 0,
-     "fx": "Ajuste de aceleración",
-     "pi": 460,
-     "cr": 1500,
-     "unlock": "diffAccel"
-    },
-    {
-     "n": "Carreras (2 sentidos)",
-     "hp": 0,
-     "fx": "Ajuste completo",
-     "pi": 460,
-     "cr": 2250,
-     "unlock": "diffFull"
-    },
-    {
-     "n": "Rally (2 sentidos)",
-     "hp": 0,
-     "fx": "Ajuste completo",
-     "pi": 460,
-     "cr": 2500,
-     "unlock": "diffFull"
-    },
-    {
-     "n": "Derrape (2 sentidos)",
-     "hp": 0,
-     "fx": "Ajuste completo",
-     "pi": 460,
-     "cr": 2500,
-     "unlock": "diffFull"
-    },
-    {
-     "n": "Todoterreno (2 sentidos)",
-     "hp": 0,
-     "fx": "Ajuste completo",
-     "pi": 460,
-     "cr": 2500,
-     "unlock": "diffFull"
-    }
-   ]
-  }
- ],
- "perf": {
-  "top": 233.9,
-  "a97": 6.233,
-  "a161": 15.817,
-  "brk97": 34.5,
-  "brk161": 80.6,
-  "g97": 0.91,
-  "g193": 0.9,
-  "tire": 2.1
- },
- "missing": [
-  "altura mínima y máxima de la suspensión (delante y detrás)",
-  "rangos de barras, rebote y compresión",
-  "calibración de la escala de los muelles (con los rangos del juego salen siempre en el mínimo)"
- ],
- "aero": [
-  {
-   "k": "bumperF",
-   "n": "Parachoques delantero",
-   "opts": [
-    {
-     "n": "West (callejero)",
-     "hp": 0,
-     "fx": "No ajustable",
-     "pi": 460,
-     "cr": 1000
-    },
-    {
-     "n": "R Magic (callejero)",
-     "hp": 0,
-     "fx": "No ajustable",
-     "pi": 460,
-     "cr": 1000
-    },
-    {
-     "n": "Garage Vary",
-     "hp": 0,
-     "fx": "No ajustable",
-     "pi": 460,
-     "cr": 1000
-    },
-    {
-     "n": "INGS (callejero)",
-     "hp": 0,
-     "fx": "No ajustable",
-     "pi": 460,
-     "cr": 1000
-    },
-    {
-     "n": "Forza Horizon 6 (competencia)",
-     "hp": 0,
-     "fx": "Ajustable",
-     "pi": 458,
-     "cr": 5000,
-     "unlock": "aeroF",
-     "rng": {
-      "aF": [
-       53,
-       88
-      ]
-     }
-    }
-   ]
-  },
-  {
-   "k": "wing",
-   "n": "Alerón trasero",
-   "opts": [
-    {
-     "n": "INGS (callejero)",
-     "hp": 0,
-     "fx": "No ajustable",
-     "pi": 460,
-     "cr": 1000
-    },
-    {
-     "n": "Rocket Bunny (deportivo)",
-     "hp": 0,
-     "fx": "No ajustable",
-     "pi": 460,
-     "cr": 2500
-    },
-    {
-     "n": "Forza Horizon 6 (competencia)",
-     "hp": 0,
-     "fx": "Ajustable",
-     "pi": 450,
-     "cr": 5000,
-     "unlock": "aeroR",
-     "rng": {
-      "aR": [
-       86,
-       144
-      ]
-     }
-    },
-    {
-     "n": "Big Country Labs (competencia)",
-     "hp": 0,
-     "fx": "Ajustable",
-     "pi": 450,
-     "cr": 5000,
-     "unlock": "aeroR",
-     "rng": {
-      "aR": [
-       86,
-       144
-      ]
-     }
-    },
-    {
-     "n": "Quitar alerón",
-     "hp": 0,
-     "fx": "Sin alerón",
-     "pi": 460,
-     "cr": 1000
-    }
-   ]
-  },
-  {
-   "k": "bumperR",
-   "n": "Parachoques trasero",
-   "opts": [
-    {
-     "n": "West (callejero)",
-     "hp": 0,
-     "fx": "No ajustable",
-     "pi": 460,
-     "cr": 1000
-    },
-    {
-     "n": "INGS (callejero)",
-     "hp": 0,
-     "fx": "No ajustable",
-     "pi": 460,
-     "cr": 1000
-    }
-   ]
-  },
-  {
-   "k": "skirts",
-   "n": "Faldones laterales",
-   "opts": [
-    {
-     "n": "West (callejero)",
-     "hp": 0,
-     "fx": "Arrastre -1 %",
-     "pi": 460,
-     "cr": 1000
-    }
-   ]
-  }
- ],
- "wheels": [
-  {
-   "k": "tires",
-   "n": "Compuesto de las llantas",
-   "opts": [
-    {
-     "n": "Callejeras",
-     "hp": 0,
-     "fx": "Agarre +0.06",
-     "pi": 477,
-     "cr": 2000,
-     "tire": "street"
-    },
-    {
-     "n": "Deportivas",
-     "hp": 0,
-     "fx": "Agarre +0.18",
-     "pi": 506,
-     "cr": 5000,
-     "tire": "sport"
-    },
-    {
-     "n": "Semilisas de competición",
-     "hp": 0,
-     "fx": "Agarre +0.30",
-     "pi": 530,
-     "cr": 10000,
-     "tire": "semi"
-    },
-    {
-     "n": "Semilisas \"Horizon\"",
-     "hp": 0,
-     "fx": "Agarre +0.30",
-     "pi": 530,
-     "cr": 10000,
-     "tire": "semi"
-    },
-    {
-     "n": "Carreras",
-     "hp": 0,
-     "fx": "Agarre +0.34",
-     "pi": 539,
-     "cr": 10000,
-     "tire": "slick"
-    },
-    {
-     "n": "Derrape",
-     "hp": 0,
-     "fx": "Agarre +0.20",
-     "pi": 508,
-     "cr": 10000,
-     "tire": "sport"
-    },
-    {
-     "n": "Rally",
-     "hp": 0,
-     "fx": "Agarre +0.21",
-     "pi": 509,
-     "cr": 10000,
-     "tire": "rally"
-    },
-    {
-     "n": "Carreras todoterreno",
-     "hp": 0,
-     "fx": "Agarre +0.15",
-     "pi": 493,
-     "cr": 10000,
-     "tire": "offroad"
-    }
-   ]
-  },
-  {
-   "k": "tireF",
-   "n": "Ancho de llanta delantera",
-   "opts": [
-    {
-     "n": "225 mm",
-     "hp": 0,
-     "fx": "225/45R17",
-     "pi": 461,
-     "cr": 1800
-    },
-    {
-     "n": "245 mm",
-     "hp": 0,
-     "fx": "245/40R17",
-     "pi": 466,
-     "cr": 2200
-    },
-    {
-     "n": "255 mm",
-     "hp": 0,
-     "fx": "255/40R17",
-     "pi": 465,
-     "cr": 2400
-    }
-   ]
-  },
-  {
-   "k": "tireR",
-   "n": "Ancho de llanta trasera",
-   "opts": [
-    {
-     "n": "235 mm",
-     "hp": 0,
-     "fx": "235/40R17",
-     "pi": 462,
-     "cr": 2000
-    },
-    {
-     "n": "255 mm",
-     "hp": 0,
-     "fx": "255/40R17",
-     "pi": 465,
-     "cr": 2400
-    },
-    {
-     "n": "265 mm",
-     "hp": 0,
-     "fx": "265/35R17",
-     "pi": 465,
-     "cr": 2600
-    },
-    {
-     "n": "275 mm",
-     "hp": 0,
-     "fx": "275/35R17",
-     "pi": 465,
-     "cr": 2800
-    },
-    {
-     "n": "285 mm",
-     "hp": 0,
-     "fx": "285/35R17",
-     "pi": 465,
-     "cr": 3000
-    },
-    {
-     "n": "295 mm",
-     "hp": 0,
-     "fx": "295/35R17",
-     "pi": 465,
-     "cr": 3200
-    }
-   ]
-  },
-  {
-   "k": "trackF",
-   "n": "Ancho de vía delantero",
-   "opts": [
-    {
-     "n": "Nivel 1",
-     "hp": 0,
-     "fx": "Más ancho (nivel 1)",
-     "pi": 460,
-     "cr": 100
-    },
-    {
-     "n": "Nivel 2",
-     "hp": 0,
-     "fx": "Más ancho (nivel 2)",
-     "pi": 460,
-     "cr": 200
-    },
-    {
-     "n": "Nivel 3",
-     "hp": 0,
-     "fx": "Más ancho (nivel 3)",
-     "pi": 460,
-     "cr": 300
-    }
-   ]
-  },
-  {
-   "k": "trackR",
-   "n": "Ancho de vía trasero",
-   "opts": [
-    {
-     "n": "Nivel 1",
-     "hp": 0,
-     "fx": "Más ancho (nivel 1)",
-     "pi": 460,
-     "cr": 100
-    },
-    {
-     "n": "Nivel 2",
-     "hp": 0,
-     "fx": "Más ancho (nivel 2)",
-     "pi": 460,
-     "cr": 200
-    },
-    {
-     "n": "Nivel 3",
-     "hp": 0,
-     "fx": "Más ancho (nivel 3)",
-     "pi": 460,
-     "cr": 300
-    }
-   ]
-  },
-  {
-   "k": "rimF",
-   "n": "Tamaño de rines delanteros",
-   "opts": [
-    {
-     "n": "18 in",
-     "hp": 0,
-     "fx": "215/40R18",
-     "pi": 460,
-     "cr": 2000
-    },
-    {
-     "n": "19 in",
-     "hp": 0,
-     "fx": "215/35R19",
-     "pi": 460,
-     "cr": 2200
-    }
-   ]
-  },
-  {
-   "k": "rimR",
-   "n": "Tamaño de rines traseros",
-   "opts": [
-    {
-     "n": "18 in",
-     "hp": 0,
-     "fx": "215/40R18",
-     "pi": 460,
-     "cr": 2000
-    },
-    {
-     "n": "19 in",
-     "hp": 0,
-     "fx": "215/35R19",
-     "pi": 460,
-     "cr": 2200
-    }
-   ]
-  },
-  {
-   "k": "rims",
-   "n": "Rines (peso)",
-   "custom": "rimkg",
-   "opts": []
-  }
- ],
- "conv": [
-  {
-   "k": "drivetrainSwap",
-   "n": "Cambio de tren motriz",
-   "opts": [
-    {
-     "n": "Tren motriz 4X4",
-     "hp": 0,
-     "fx": "Tracción total (AWD)",
-     "pi": 468,
-     "cr": 10000,
-     "drive": "awd",
-     "kg": 23,
-     "front": 2
-    }
-   ]
-  },
-  {
-   "k": "aspiration",
-   "n": "Aspiración",
-   "opts": [
-    {
-     "n": "Turbo único",
-     "hp": 78,
-     "pi": 513,
-     "cr": 1800
-    },
-    {
-     "n": "Supercargador centrífugo",
-     "hp": 34,
-     "pi": 476,
-     "cr": 1500
-    }
-   ]
-  },
-  {
-   "k": "bodykit",
-   "n": "Kit de carrocería",
-   "opts": [
-    {
-     "n": "Rocket Bunny - Kit de carrocería ancha",
-     "hp": 0,
-     "kg": 7,
-     "fx": "Carrocería ancha",
-     "pi": 460,
-     "cr": 5000
-    }
-   ]
-  }
- ],
- "notes": [],
- "img": "data/img/toyota-86-2013.png",
- "stage": {
-  "engine": "data/img/stage/toyota-86-2013/engine.jpg",
-  "all": "data/img/stage/toyota-86-2013/all.jpg",
-  "rear": "data/img/stage/toyota-86-2013/rear.jpg",
-  "fwheel": "data/img/stage/toyota-86-2013/fwheel.jpg",
-  "under": "data/img/stage/toyota-86-2013/under.jpg",
-  "frontend": "data/img/stage/toyota-86-2013/frontend.jpg",
-  "wing": "data/img/stage/toyota-86-2013/wing.jpg",
-  "side": "data/img/stage/toyota-86-2013/side.jpg",
-  "rwheel": "data/img/stage/toyota-86-2013/rwheel.jpg",
-  "cabin": "data/img/stage/toyota-86-2013/all.jpg"
- }
 }

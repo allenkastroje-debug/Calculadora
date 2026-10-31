@@ -31,6 +31,7 @@
     <button type="button" role="tab" id="tabCalc" aria-selected="true" aria-controls="pCalc">Reglajes</button>
     <button type="button" role="tab" id="tabDiag" aria-selected="false" aria-controls="pDiag">Diagnóstico</button>
     <button type="button" role="tab" id="tabParts" aria-selected="false" aria-controls="pParts">Piezas</button>
+    <button type="button" role="tab" id="tabTel" aria-selected="false" aria-controls="pTel">Telemetría</button>
     <button type="button" role="tab" id="tabProf" aria-selected="false" aria-controls="pProf">Perfiles</button>
   </div>
 
@@ -143,6 +144,43 @@
   <div role="tabpanel" id="pDiag" aria-labelledby="tabDiag" hidden>
     <div class="chips" id="diagChips" role="group" aria-label="Filtrar por problema"></div>
     <div class="diag" id="diagList"></div>
+  </div>
+
+  <!-- TELEMETRÍA -->
+  <div role="tabpanel" id="pTel" aria-labelledby="tabTel" hidden>
+    <div class="tl-grid">
+      <section class="panel">
+        <h3>Conexión</h3>
+        <p class="tl-small">Necesita el programa receptor corriendo en tu PC (carpeta <code>herramientas</code> del paquete). En el juego: Ajustes › HUD y jugabilidad › Data Out = Sí, IP 127.0.0.1 (si el receptor está en la misma PC) y puerto 9999.</p>
+        <div class="tl-row">
+          <label>Dirección del receptor<input type="text" id="tlUrl" value="ws://127.0.0.1:8777" spellcheck="false"></label>
+          <button type="button" class="btn" id="tlConn">Conectar</button>
+        </div>
+        <div class="tl-st" id="tlSt">Sin conexión.</div>
+        <div class="tl-st" id="tlChk"></div>
+      </section>
+      <section class="panel">
+        <h3>En vivo</h3>
+        <div class="tl-big"><div><span class="n" id="tlSpd">0</span> <span class="u" id="tlSpdU">km/h</span></div><div><span class="n" id="tlGear">–</span> <span class="u">marcha</span></div><div><span class="n" id="tlRpm">0</span> <span class="u">rpm</span></div></div>
+        <div class="tl-ped"><span>Acelerador</span><div class="tl-bar"><i id="tlGas"></i></div><span>Freno</span><div class="tl-bar b"><i id="tlBrk"></i></div><span>Volante</span><div class="tl-bar"><i id="tlStr" style="width:2%;margin-left:49%"></i></div></div>
+        <div class="tl-car" id="tlCar"></div>
+        <div class="tl-small" id="tlCarId"></div>
+      </section>
+    </div>
+    <section class="panel" style="margin-top:16px">
+      <h3>Prueba guiada</h3>
+      <p class="tl-small">1) Monta en el juego el reglaje que quieres evaluar. 2) Elige el tipo de reglaje. 3) Pulsa «Iniciar» y da 3–5 vueltas con el mismo ritmo. 4) Pulsa «Detener» para ver el análisis. Solo se registra mientras conduces.</p>
+      <div class="tl-row">
+        <label>Tipo de reglaje<select id="tlUse"></select></label>
+        <button type="button" class="btn" id="tlRec">Iniciar</button>
+        <button type="button" class="btn ghost" id="tlClr">Descartar</button>
+      </div>
+      <div class="tl-st" id="tlRecSt">Sin grabar.</div>
+    </section>
+    <section class="panel" style="margin-top:16px" id="tlRes" hidden>
+      <h3>Resultado</h3>
+      <div id="tlOut"></div>
+    </section>
   </div>
 
   <!-- PIEZAS -->
