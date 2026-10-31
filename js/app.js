@@ -513,6 +513,16 @@ function showRng(t,v){
   if(t==='h')return String(Math.round((units==='imperial'?v*FAC.h:v)*100)/100);
   return String(v);
 }
+function applyCarRanges(car){
+  /* Rangos propios del coche: valen con cualquier pieza. Quedan editables en «Rangos de los controles». */
+  const r=car&&car.rng;if(!r)return;
+  Object.keys(RNG_IDS).forEach(k=>{
+    if(!r[k])return;
+    const [i0,i1,t]=RNG_IDS[k];
+    const f=r[k].map(v=>t==='k'?v/KF[r.unit||'kgf']:v);
+    $(i0).value=showRng(t,f[0]);$(i1).value=showRng(t,f[1]);
+  });
+}
 function applyPartRanges(car){
   const note=$('rngSrc'),want={},src=[];
   allCats(car).forEach(cat=>{
@@ -529,7 +539,7 @@ function applyPartRanges(car){
     src.push('«'+o.n+'» ('+txt.join(', ')+')');
   });
   Object.keys(RNG_IDS).forEach(k=>{
-    const [i0,i1,t]=RNG_IDS[k],v=want[k]||(appliedRng[k]?RNG_DEF[k]:null);
+    const [i0,i1,t]=RNG_IDS[k],v=want[k]||(appliedRng[k]?((car.rng&&car.rng[k])||RNG_DEF[k]):null);
     if(!v)return;
     $(i0).value=showRng(t,v[0]);$(i1).value=showRng(t,v[1]);
     appliedRng[k]=!!want[k];
@@ -703,6 +713,7 @@ function onCarChange(){
     $('weight').value=units==='imperial'?Math.round(car.weight*FAC.w):car.weight;
     $('front').value=car.front;
     if(car.perf)$('topNow').value=units==='imperial'?Math.round(car.perf.top*FAC.s):car.perf.top;
+    appliedRng={};applyCarRanges(car);
     applyPartsToInputs();
   }
   renderParts();updatePickLabel();

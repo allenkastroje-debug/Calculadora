@@ -691,7 +691,6 @@
  "missing": [
   "altura mínima y máxima de la suspensión (delante y detrás)",
   "rangos de barras, rebote y compresión",
-  "rango de carga aerodinámica trasera (alerón de competencia)",
   "calibración de la escala de los muelles (con los rangos del juego salen siempre en el mínimo)"
  ],
  "aero": [
@@ -767,7 +766,13 @@
      "fx": "Ajustable",
      "pi": 450,
      "cr": 5000,
-     "unlock": "aeroR"
+     "unlock": "aeroR",
+     "rng": {
+      "aR": [
+       86,
+       144
+      ]
+     }
     },
     {
      "n": "Big Country Labs (competencia)",
@@ -775,7 +780,13 @@
      "fx": "Ajustable",
      "pi": 450,
      "cr": 5000,
-     "unlock": "aeroR"
+     "unlock": "aeroR",
+     "rng": {
+      "aR": [
+       86,
+       144
+      ]
+     }
     },
     {
      "n": "Quitar alerón",
