@@ -1,6 +1,6 @@
 /* Guarda la página para usarla sin conexión.
    Con conexión siempre intenta traer la versión más nueva; sin ella usa la guardada. */
-const CACHE='banco-reglajes-v3';
+const CACHE='banco-reglajes-v4';
 const SHELL=['./','index.html','styles.css','js/app.js','manifest.webmanifest','icons/icon-192.png','icons/icon-512.png','data/index.json'];
 const slug=t=>String(t).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
 async function precacheData(c){

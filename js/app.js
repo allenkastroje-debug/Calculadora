@@ -30,6 +30,7 @@ function compute(i){
   let kR=mR*Math.pow(2*Math.PI*fR,2)/9806.65;
   if(goal==='exit')kR*=0.9;                          // trasera algo más blanda: más tracción al acelerar
   if(goal==='accel'){kR*=0.92;kF*=1.05;}             // favorece la transferencia de peso hacia atrás
+  if(i.kBase){kF=i.kBase[0];kR=i.kBase[1];}          // con una pieza de carreras/rally/derrape, los muelles parten del valor base del juego
 
   const R=i.rng;
   const ranged=(pos,rg)=>{
@@ -170,7 +171,7 @@ function compute(i){
       {l:'Avance (°)',f:C(ca,{d:1}),one:true}]});
   g.push({title:'Barras estabilizadoras',why:'Controlan el balanceo. Más dura delante empuja al subviraje; más dura detrás ayuda a rotar.',
     rows:[{l:'Rigidez',f:rCell(aF,R.ab,'f'),r:rCell(aR,R.ab,'r')}]});
-  g.push({title:'Muelles',why:'Calculados con la masa que carga cada rueda y una frecuencia objetivo según uso y clase. Atrás un poco más duros para mantener el coche plano.',
+  g.push({title:'Muelles',why:i.kBase?'Valores base con los que el juego arranca la pieza instalada. Son el punto de partida: ajústalos desde aquí según lo que sientas y mide con la telemetría.':'Calculados con la masa que carga cada rueda y una frecuencia objetivo según uso y clase. Atrás un poco más duros para mantener el coche plano.',
     rows:[{l:'Rigidez',f:kCell(kF,R.kF,'f'),r:kCell(kR,R.kR,'r')}]});
   g.push({title:'Altura',why:'Baja en asfalto para bajar el centro de gravedad; alta en tierra para no tocar el suelo. Atrás ligeramente más alta da algo de rake.',
     rows:[{l:'Altura',f:rCell(hF,R.hF,'f',{t:'h'}),r:rCell(hR,R.hR,'r',{t:'h'})}]});
@@ -240,10 +241,20 @@ function setKUnit(nu,convert){
 const num=id=>{const v=parseFloat($(id).value);return Number.isFinite(v)?v:0};
 const FIELDS=['carName','cls','drive','weight','front','hp','tire','use','goal','track','fd','topNow','topTarget','bal','stiff','kUnit','kFmin','kFmax','kRmin','kRmax','abMin','abMax','hFmin','hFmax','hRmin','hRmax','rbMin','rbMax','cpMin','cpMax','aFmin','aFmax','aRmin','aRmax'];
 
+/* Muelles base de la pieza instalada (valor con el que el juego arranca el reglaje personalizado). */
+function kBaseNow(){
+  const car=carNow();if(!car)return null;
+  let kb=null;
+  allCats(car).forEach(cat=>{
+    const ix=partSel[cat.k],o=ix!==undefined&&ix>=0?cat.opts[ix]:null;
+    if(o&&o.rng&&o.rng.def&&o.rng.def.kF!=null){const u=KF[o.rng.unit||'kgf']||1;kb=[o.rng.def.kF/u,o.rng.def.kR/u]}
+  });
+  return kb;
+}
 function readInputs(){
   const rg=(a,b,t)=>[t?toSI(num(a),t):num(a),t?toSI(num(b),t):num(b)];
   return {
-    cls:$('cls').value,drive:$('drive').value,use:$('use').value,goal:$('goal').value,track:$('track').value,tire:$('tire').value,
+    cls:$('cls').value,drive:$('drive').value,use:$('use').value,goal:$('goal').value,kBase:kBaseNow(),track:$('track').value,tire:$('tire').value,
     weight:toSI(num('weight'),'w'),front:num('front'),hp:num('hp'),aero:$('aero').value,
     fd:num('fd'),topNow:toSI(num('topNow'),'s'),topTarget:toSI(num('topTarget'),'s'),
     bal:num('bal'),stiff:num('stiff'),
