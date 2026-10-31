@@ -27,20 +27,24 @@
     </div>
   </div>
 
-  <div class="tabs" role="tablist" aria-label="Secciones">
-    <button type="button" role="tab" id="tabCalc" aria-selected="true" aria-controls="pCalc">Reglajes</button>
-    <button type="button" role="tab" id="tabDiag" aria-selected="false" aria-controls="pDiag">Diagnóstico</button>
-    <button type="button" role="tab" id="tabParts" aria-selected="false" aria-controls="pParts">Piezas</button>
-    <button type="button" role="tab" id="tabTel" aria-selected="false" aria-controls="pTel">Telemetría</button>
-    <button type="button" role="tab" id="tabProf" aria-selected="false" aria-controls="pProf">Perfiles</button>
+  <nav class="steps" id="steps" aria-label="Secciones">
+    <button type="button" id="secCalc" data-sec="calc" aria-selected="true"><b>1</b>Calculadora</button>
+    <button type="button" id="secCar" data-sec="car" aria-selected="false"><b>2</b>Coche</button>
+    <button type="button" id="secTel" data-sec="tel" aria-selected="false"><b>3</b>Telemetría</button>
+  </nav>
+  <div class="tabs off" id="subTabs" role="tablist" aria-label="Apartados de la sección Coche">
+    <button type="button" role="tab" id="tabParts" aria-selected="false" aria-controls="pParts">Specs y piezas</button>
+    <button type="button" role="tab" id="tabRec" aria-selected="false" aria-controls="pCalc">Recomendaciones</button>
   </div>
 
   <!-- REGLAJES -->
   <div role="tabpanel" id="pCalc" aria-labelledby="tabCalc">
+    <div class="recbar carOnly" id="recBar"></div>
+    <p class="calcNote calcOnly" id="calcNote" hidden></p>
     <div class="grid">
       <form class="panel" id="form" autocomplete="off" onsubmit="return false">
-        <fieldset>
-          <legend>Coche</legend>
+        <fieldset id="fsCar">
+          <legend>Coche (datos manuales)</legend>
           <div class="pickRow"><span class="lab" id="carPickLab">Coche de la lista</span><button type="button" class="pickBtn" id="carPick" aria-haspopup="dialog" aria-labelledby="carPickLab carPickTxt"><span id="carPickTxt">Personalizado</span><span aria-hidden="true">›</span></button></div>
           <select id="carSel" hidden aria-hidden="true" tabindex="-1"><option value="">Personalizado</option></select>
           <label>Nombre<input type="text" id="carName" placeholder="Ej: Nissan Skyline GT-R"></label>
@@ -81,6 +85,16 @@
               <select id="track"><option value="fast">Rápida</option><option value="mixed" selected>Mixta</option><option value="tech">Técnica (curvas lentas)</option></select>
             </label>
           </div>
+          <label>Objetivo del reglaje
+            <select id="goal">
+              <option value="bal" selected>Equilibrado</option>
+              <option value="exit">Respuesta y tracción al salir de curva</option>
+              <option value="accel">Aceleración (recta / arrancada)</option>
+              <option value="entry">Estabilidad al frenar y entrar</option>
+              <option value="rotate">Giro ágil (que rote más)</option>
+              <option value="speed">Velocidad punta</option>
+            </select>
+          </label>
           <label>Aerodinámica ajustable
             <select id="aero">
               <option value="both" selected>Delantera y trasera</option>
@@ -138,12 +152,15 @@
 
       <div class="results" id="results" aria-live="polite"></div>
     </div>
+    <div class="nextBar carOnly"><span>Siguiente paso: probar este reglaje en pista y medir cómo rinde.</span><button type="button" class="btn" id="toTel">Ir a Telemetría →</button></div>
   </div>
 
   <!-- DIAGNÓSTICO -->
-  <div role="tabpanel" id="pDiag" aria-labelledby="tabDiag" hidden>
-    <div class="chips" id="diagChips" role="group" aria-label="Filtrar por problema"></div>
-    <div class="diag" id="diagList"></div>
+  <div id="pDiag" hidden>
+    <details class="diagBox"><summary>Diagnóstico por síntomas</summary>
+      <div class="chips" id="diagChips" role="group" aria-label="Filtrar por problema"></div>
+      <div class="diag" id="diagList"></div>
+    </details>
   </div>
 
   <!-- TELEMETRÍA -->
@@ -169,10 +186,21 @@
     </div>
     <section class="panel" style="margin-top:16px">
       <h3>Prueba guiada</h3>
+      <p class="tl-small" id="tlCtx"></p>
       <p class="tl-small">1) Monta en el juego el reglaje que quieres evaluar. 2) Elige el tipo de reglaje. 3) Pulsa «Iniciar» y da 3–5 vueltas con el mismo ritmo. 4) Pulsa «Detener» para ver el análisis. Solo se registra mientras conduces.</p>
       <div class="tl-row">
         <label>Tipo de reglaje<select id="tlUse"></select></label>
-        <button type="button" class="btn" id="tlRec">Iniciar</button>
+        <label>Objetivo del reglaje<select id="tlGoal"></select></label>
+      </div>
+      <div class="tl-row"><label>Nombre de la prueba<input type="text" id="tlName" placeholder="Prueba 1" maxlength="40"></label></div>
+      <label>Notas del reglaje (opcional: piezas montadas y valores que cambiaste)<textarea id="tlNotes" rows="2" placeholder="Ej: barra delantera 30, muelles del. 126.6, presión 30 psi"></textarea></label>
+      <details class="tl-tuneBox"><summary>Valores del reglaje en el juego (recomendado: así Claude puede aprender de cada prueba)</summary>
+        <p class="tl-small">Escribe lo que tienes puesto en el juego, con las unidades que muestra el juego. Puedes dejar vacío lo que no cambies.</p>
+        <div class="tl-tune" id="tlTune"></div>
+        <div class="tl-row"><button type="button" class="btn ghost" id="tlFillRec">Cargar los recomendados por la calculadora</button><button type="button" class="btn ghost" id="tlTuneClr">Vaciar</button></div>
+      </details>
+      <div class="tl-row">
+        <button type="button" class="btn" id="tlRec">Iniciar prueba 1</button>
         <button type="button" class="btn ghost" id="tlClr">Descartar</button>
       </div>
       <div class="tl-st" id="tlRecSt">Sin grabar.</div>
@@ -181,10 +209,28 @@
       <h3>Resultado</h3>
       <div id="tlOut"></div>
     </section>
+    <section class="panel" style="margin-top:16px">
+      <h3>Pruebas guardadas y datos para Claude</h3>
+      <p class="tl-small">Cada prueba que finalizas se guarda sola en este navegador. Compáralas aquí. Claude no recuerda nada entre conversaciones por su cuenta: descarga los datos y pásaselos para que calibre las reglas con tus pruebas y las use en coches nuevos. El archivo incluye pruebas, perfiles, coche, piezas y reglaje.</p>
+      <div id="tlList" class="tl-list"></div>
+      <div class="tl-row">
+        <button type="button" class="btn ghost" id="tlDl">Descargar datos para Claude (.json)</button>
+        <button type="button" class="btn ghost" id="tlCp">Copiar datos</button>
+        <button type="button" class="btn ghost" id="tlImpB">Importar…</button>
+      </div>
+      <div id="tlImpBox" class="tl-imp" hidden><textarea id="tlImp" rows="4" placeholder="Pega aquí los datos exportados"></textarea><div class="tl-row"><button type="button" class="btn" id="tlImpGo">Importar pruebas</button></div></div>
+      <div class="tl-st" id="tlMsg"></div>
+    </section>
+    <section class="panel" style="margin-top:16px" id="tlCmpBox" hidden>
+      <h3>Comparar pruebas</h3>
+      <div class="tl-row"><label>Prueba A<select id="tlA"></select></label><label>Prueba B<select id="tlB"></select></label></div>
+      <div id="tlCmp"></div>
+    </section>
   </div>
 
   <!-- PIEZAS -->
   <div role="tabpanel" id="pParts" aria-labelledby="tabParts" hidden>
+    <div class="pickTop" id="pickTop"><button type="button" class="btn" id="toRec">Ver recomendaciones →</button></div>
     <div class="garage" id="partsBox">
       <div class="stage" id="stage">
         <svg id="carSvg" viewBox="0 0 800 400" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Vista del coche. La cámara cambia a la zona de la pieza elegida.">
@@ -218,7 +264,7 @@
   </div>
 
   <!-- PERFILES -->
-  <div role="tabpanel" id="pProf" aria-labelledby="tabProf" hidden>
+  <div id="pProf" hidden>
     <div class="panel">
       <h2>Perfiles guardados</h2>
       <div class="prof" id="profList"></div>

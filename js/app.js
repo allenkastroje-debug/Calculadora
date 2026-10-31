@@ -9,7 +9,8 @@ function compute(i){
   const idx=Math.max(0,CLASSES.indexOf(i.cls));
   const fp=i.front/100, W=i.weight, drive=i.drive, use=i.use;
   const pw=i.hp/(W/1000);
-  const rot=-i.bal;               // positivo = el coche debe girar más
+  const goal=i.goal||'bal';       // objetivo: bal, exit, accel, entry, rotate, speed
+  const rot=-i.bal+({rotate:1.5,entry:-1}[goal]||0);   // positivo = el coche debe girar más
   const notes=[];
 
   /* Frecuencia propia de la suspensión (Hz): base por uso, ajustada por clase, pista y neumático. */
@@ -25,8 +26,10 @@ function compute(i){
   const sf=1+0.05*i.stiff; fF*=sf; fR*=sf;
 
   const mF=W*fp/2*0.88, mR=W*(1-fp)/2*0.88;          // masa suspendida por rueda
-  const kF=mF*Math.pow(2*Math.PI*fF,2)/9806.65;       // kgf/mm
-  const kR=mR*Math.pow(2*Math.PI*fR,2)/9806.65;
+  let kF=mF*Math.pow(2*Math.PI*fF,2)/9806.65;       // kgf/mm
+  let kR=mR*Math.pow(2*Math.PI*fR,2)/9806.65;
+  if(goal==='exit')kR*=0.9;                          // trasera algo más blanda: más tracción al acelerar
+  if(goal==='accel'){kR*=0.92;kF*=1.05;}             // favorece la transferencia de peso hacia atrás
 
   const R=i.rng;
   const ranged=(pos,rg)=>{
@@ -57,6 +60,7 @@ function compute(i){
   }
   if(use!=='drag'){pf+=dW*0.8+(i.front-50)*0.12; pr+=dW*0.8-(i.front-50)*0.12;}
   pf=clamp(pf,14,50); pr=clamp(pr,14,50);
+  if(goal==='exit'||goal==='accel')pr=clamp(pr-0.7,14,50);
 
   /* Alineación */
   let cf,cr,tf,tr,ca;
@@ -67,6 +71,7 @@ function compute(i){
   else if(use==='drift'){cf=-3.5;cr=-1.0;tf=-0.5;tr=0;ca=7.0;}
   else {cf=0;cr=0;tf=0;tr=0;ca=5.0;}
   if(drive==='fwd'){ca-=0.5;}
+  if(goal==='entry')tr+=0.1;
   tf-=0.03*rot; cf-=0.04*rot*(use==='drag'?0:1);
 
   /* Barras estabilizadoras (posición 0 a 1 del rango) */
@@ -81,6 +86,7 @@ function compute(i){
   aF+=(i.front-50)*0.008;
   if(drive!=='fwd') aR-=clamp((pw-300)/1500,0,0.12);
   aF-=0.04*rot; aR+=0.04*rot;
+  if(goal==='exit'||goal==='accel'){aR-=0.06;aF+=0.03;}
   aF=clamp(aF,0.02,0.98); aR=clamp(aR,0.02,0.98);
 
   /* Altura */
@@ -91,6 +97,7 @@ function compute(i){
   else if(use==='cross'){hF=0.85;hR=0.85;}
   else if(use==='drift'){hF=0.20;hR=0.20;}
   else {hF=0.45;hR=0.15;}
+  if(goal==='accel')hR+=0.05;
 
   /* Amortiguación */
   const stF=clamp((fF-1.2)/1.7), stR=clamp((fR-1.2)/1.7);
@@ -107,6 +114,9 @@ function compute(i){
   else if(use==='drift'){eF=0.3;eR=0.3;}
   else {eF=0;eR=0;}
   eR+=-0.03*rot;
+  if(goal==='speed'){eF*=0.5;eR*=0.5;}
+  else if(goal==='accel'){eF*=0.7;eR*=0.7;}
+  else if(goal==='entry'){eR+=0.05;}
   /* Con solo un eje ajustable, el otro queda fijo: se compensa para no desequilibrar el coche. */
   if(i.aero==='rear'){eR+=-0.05-0.03*rot;}
   if(i.aero==='front'){eF+=-0.05+0.03*rot;}
@@ -134,13 +144,19 @@ function compute(i){
     else if(use==='street'){dAf=15;dDf=0;dAr=50-hpAdj*0.5;dDr=15;dC=65;}
     else {dAf=25;dDf=0;dAr=40-hpAdj*0.5;dDr=10;dC=55;}
   }
+  if(goal==='exit'||goal==='accel'){
+    const inc=goal==='accel'?15:8;
+    if(dAr!==null&&drive!=='fwd')dAr=Math.min(100,dAr+inc);
+    if(dAf!==null&&drive==='fwd')dAf=goal==='accel'?Math.min(100,dAf+10):Math.max(0,dAf-10);
+  }
+  if(goal==='entry'){if(dDr!==null)dDr+=10;if(dDf!==null)dDf+=5;}
   const dRot=(v,k)=>v===null?null:clamp(v-k*rot,0,100);
   dAf=dRot(dAf,4);dAr=dRot(dAr,4);dDf=dRot(dDf,2);dDr=dRot(dDr,2);
   if(dC!==null && use!=='drag') dC=clamp(dC+2*rot,40,95);
 
   /* Frenos */
   const bBase={road:52,street:52,dirt:48,cross:48,drift:46,drag:50}[use];
-  const brake=clamp(bBase+(i.front-50)*0.6-1*rot,40,65);
+  const brake=clamp(bBase+(i.front-50)*0.6-1*rot+(goal==='entry'?2:0),40,65);
   let bp={road:110,street:100,dirt:85,cross:85,drift:100,drag:100}[use];
   if(i.tire==='slick'||i.tire==='semi') bp+=5;
 
@@ -197,6 +213,8 @@ function compute(i){
   if(Math.abs(fp-0.5)>0.12) notes.push('El reparto de peso es muy desigual. Revisa el balance de frenos y las barras en pista.');
   if(pw>700) notes.push('Mucha potencia por tonelada. Si pierdes tracción, sube la presión trasera un poco y ablanda la barra trasera.');
   if(drive==='fwd'&&pw>450) notes.push('FWD con mucha potencia: el diferencial delantero tiende a subvirar a la salida. Baja el bloqueo de aceleración si pasa.');
+  const GN={"exit": "Objetivo «respuesta al salir de curva»: barra y muelle traseros algo más blandos, algo menos de presión trasera y más bloqueo del diferencial en aceleración (en FWD, menos) para empujar mejor al abrir gas. Si aún patina, acorta la relación final un poco.", "accel": "Objetivo «aceleración»: muelle trasero más blando y delantero más firme para cargar el eje motriz, diferencial más cerrado en aceleración y menos carga aerodinámica. Para la arrancada, una relación final más corta ayuda.", "entry": "Objetivo «estabilidad al frenar y entrar»: más convergencia trasera, algo más de carga trasera, más bloqueo en deceleración y un poco más de freno delantero para que la trasera no se suelte al entrar.", "rotate": "Objetivo «giro ágil»: el coche se ajusta para rotar más (equivale a mover «Comportamiento actual» hacia sobreviraje). Si se vuelve nervioso, vuelve a Equilibrado.", "speed": "Objetivo «velocidad punta»: la carga aerodinámica baja a la mitad para reducir arrastre. Comprueba que la trasera siga estable en las curvas rápidas."};
+  if(GN[goal])notes.unshift(GN[goal]);
   return {groups:g,notes:notes,pw:pw};
 }
 //#LOGIC_END
@@ -220,12 +238,12 @@ function setKUnit(nu,convert){
   kUnit=nu;$('kUnit').value=nu;refreshLabels();
 }
 const num=id=>{const v=parseFloat($(id).value);return Number.isFinite(v)?v:0};
-const FIELDS=['carName','cls','drive','weight','front','hp','tire','use','track','fd','topNow','topTarget','bal','stiff','kUnit','kFmin','kFmax','kRmin','kRmax','abMin','abMax','hFmin','hFmax','hRmin','hRmax','rbMin','rbMax','cpMin','cpMax','aFmin','aFmax','aRmin','aRmax'];
+const FIELDS=['carName','cls','drive','weight','front','hp','tire','use','goal','track','fd','topNow','topTarget','bal','stiff','kUnit','kFmin','kFmax','kRmin','kRmax','abMin','abMax','hFmin','hFmax','hRmin','hRmax','rbMin','rbMax','cpMin','cpMax','aFmin','aFmax','aRmin','aRmax'];
 
 function readInputs(){
   const rg=(a,b,t)=>[t?toSI(num(a),t):num(a),t?toSI(num(b),t):num(b)];
   return {
-    cls:$('cls').value,drive:$('drive').value,use:$('use').value,track:$('track').value,tire:$('tire').value,
+    cls:$('cls').value,drive:$('drive').value,use:$('use').value,goal:$('goal').value,track:$('track').value,tire:$('tire').value,
     weight:toSI(num('weight'),'w'),front:num('front'),hp:num('hp'),aero:$('aero').value,
     fd:num('fd'),topNow:toSI(num('topNow'),'s'),topTarget:toSI(num('topTarget'),'s'),
     bal:num('bal'),stiff:num('stiff'),
@@ -478,7 +496,7 @@ function lockMsg(title,lk){
   else if(title==='Marchas'){if(!lk.gearFinal&&!lk.gears)need.push(NEED.gears)}
   if(title==='Diferencial'&&!need.length&&lk.diffAccel&&!lk.diffFull)return '<div class="banner">Con el diferencial deportivo solo puedes ajustar la aceleración. Para ajustar también la deceleración necesitas uno de carreras, rally, derrape o todoterreno.</div>';
   if(!need.length)return '';
-  return '<div class="banner">Con las piezas que elegiste en la pestaña Piezas, este ajuste sigue bloqueado en el juego. Para desbloquearlo necesitas: '+need.join(' y ')+'.</div>';
+  return '<div class="banner">Con las piezas que elegiste en Specs y piezas, este ajuste sigue bloqueado en el juego. Para desbloquearlo necesitas: '+need.join(' y ')+'.</div>';
 }
 function springHint(){
   const u=$('use').value;
@@ -695,7 +713,7 @@ function renderParts(focusSel){
     h+='<div class="detail">'+detailHtml(car,o)+'</div>';
   }
   h+='<div class="sum"><div id="partsSum">'+summaryHtml(car)+'</div>';
-  h+='<p class="hints">La potencia, el peso y la clase de la pestaña Reglajes se actualizan solos. El PI es una estimación: suma cada mejora por separado, y el real del juego puede variar unos puntos. Pasa el cursor o enfoca una pieza para mover la cámara.</p>';
+  h+='<p class="hints">La potencia, el peso y la clase de las Recomendaciones se actualizan solos. El PI es una estimación: suma cada mejora por separado, y el real del juego puede variar unos puntos. Pasa el cursor o enfoca una pieza para mover la cámara.</p>';
   h+='<div class="actions"><button type="button" class="btn ghost" data-act="reset">Quitar todas las mejoras</button></div>';
   if(car.notes)car.notes.forEach(n=>{h+='<div class="banner">'+esc(n)+'</div>'});
   if(car.missing&&car.missing.length)h+='<div class="banner">Faltan por cargar: '+car.missing.map(esc).join(', ')+'.</div>';
@@ -750,6 +768,7 @@ const slug=s=>String(s).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/
 function updatePickLabel(){
   const c=carNow(),t=$('carPickTxt');
   if(t)t.textContent=c?(c.year+' '+c.maker+' '+c.name):'Personalizado';
+  const tr=$('toRec');if(tr)tr.disabled=!c;
 }
 function renderPicker(){
   const body=$('pickBody'),title=$('pickTitle');
@@ -894,7 +913,7 @@ function applyProfile(p){
 }
 function renderProfiles(){
   const el=$('profList');
-  if(!profiles.length){el.innerHTML='<p class="empty">Aún no hay perfiles. Configura un coche en Reglajes y pulsa Guardar perfil.</p>';return;}
+  if(!profiles.length){el.innerHTML='<p class="empty">Aún no hay perfiles. Guarda uno desde Calculadora, Recomendaciones o Telemetría.</p>';return;}
   el.innerHTML='';
   profiles.forEach((p,n)=>{
     const d=p.data||{};
@@ -902,7 +921,7 @@ function renderProfiles(){
     const nm=document.createElement('span');nm.className='nm';nm.textContent=p.name;
     const bt=document.createElement('span');bt.className='bt';
     const lo=document.createElement('button');lo.type='button';lo.className='btn';lo.textContent='Cargar';
-    lo.addEventListener('click',()=>{applyProfile(p);selectTab('tabCalc');$('saveStatus').textContent='Perfil cargado';});
+    lo.addEventListener('click',()=>{applyProfile(p);selectTab(p.data&&p.data.carId&&carNow()?'tabRec':'tabCalc');$('saveStatus').textContent='Perfil cargado';});
     const de=document.createElement('button');de.type='button';de.className='btn danger';de.textContent='Borrar';
     let armed=false;
     de.addEventListener('click',()=>{
@@ -912,7 +931,7 @@ function renderProfiles(){
     bt.append(lo,de);
     const mt=document.createElement('span');mt.className='mt';
     const useTxt={road:'Circuito',street:'Calle',dirt:'Tierra',cross:'Cross country',drift:'Drift',drag:'Drag'}[d.use]||'';
-    mt.textContent='Clase '+(d.cls||'?')+' · '+String(d.drive||'').toUpperCase()+' · '+useTxt+' · '+(p.saved||'');
+    mt.textContent='Clase '+(d.cls||'?')+' · '+String(d.drive||'').toUpperCase()+' · '+useTxt+' · '+(p.saved||'')+(p.tel?' · Prueba «'+p.tel.prueba+'»'+(p.tel.media?' media '+(+p.tel.media).toFixed(2)+' s':'')+(p.tel.notas?' · '+p.tel.notas:''):'');
     row.append(nm,bt,mt);el.appendChild(row);
   });
 }
@@ -928,16 +947,52 @@ function saveProfile(){
 }
 
 /* ---------- Pestañas ---------- */
+const TABS={tabCalc:[['pCalc','pDiag'],'calc'],tabParts:[['pParts'],'car'],tabRec:[['pCalc'],'car'],tabTel:[['pTel','pProf'],'tel']};
+const SEC_FIRST={calc:'tabCalc',car:'tabParts',tel:'tabTel'};
+let curTab='tabCalc';
+function syncCar(){
+  const car=carNow();if(!car)return;
+  $('carName').value=car.year+' '+car.maker+' '+car.name;
+  applyPartsToInputs();
+}
+function recBar(){
+  const car=carNow(),el=$('recBar');
+  if(!car){el.innerHTML='<div><div class="nm">Sin coche elegido</div><div class="mt">Elige un coche y sus piezas para ver las recomendaciones.</div></div><button type="button" class="btn" id="recBack">Elegir coche</button>';}
+  else{const t=partTotals(car);
+    el.innerHTML='<div><div class="nm">'+esc(car.year+' '+car.maker+' '+car.name)+'</div><div class="mt">'+pibHtml(t.pi)+' · '+$('hp').value+' hp · '+$('weight').value+' '+uLab('w')+' · '+({rwd:'RWD',fwd:'FWD',awd:'AWD'}[$('drive').value]||'')+'</div></div><button type="button" class="btn ghost" id="recBack">Cambiar coche o piezas</button>';}
+  $('recBack').addEventListener('click',()=>selectTab('tabParts'));
+}
+function calcNote(){
+  const car=carNow(),e=$('calcNote');
+  e.hidden=!car;
+  if(car)e.textContent='Los datos de abajo partieron del coche «'+car.year+' '+car.maker+' '+car.name+'» y los puedes cambiar a mano. Para volver a los datos del coche usa la sección 2.';
+}
 function selectTab(id){
-  [['tabCalc','pCalc'],['tabDiag','pDiag'],['tabParts','pParts'],['tabTel','pTel'],['tabProf','pProf']].forEach(([t,p])=>{
-    $(t).setAttribute('aria-selected',String(t===id));
-    $(p).hidden=t!==id;
-  });
+  const [panels,sec]=TABS[id];curTab=id;
+  $('subTabs').classList.toggle('off',sec!=='car');
+  ['tabParts','tabRec'].forEach(t=>$(t).setAttribute('aria-selected',String(t===id)));
+  ['pCalc','pDiag','pParts','pTel','pProf'].forEach(p=>{$(p).hidden=panels.indexOf(p)<0});
+  document.querySelectorAll('#steps button').forEach(b=>b.setAttribute('aria-selected',String(b.dataset.sec===sec)));
+  const pc=$('pCalc'),rec=id==='tabRec';
+  pc.classList.toggle('mode-car',rec);
+  pc.classList.toggle('nocar',rec&&!carNow());
+  if(rec){syncCar();recBar();render()}
+  if(id==='tabCalc')calcNote();
+  if(id==='tabParts')$('toRec').disabled=!carNow();
+  if(id==='tabTel'){
+    $('tlUse').value=$('use').value;$('tlGoal').value=$('goal').value;
+    const c=carNow();$('tlCtx').textContent=c?('Coche: '+c.year+' '+c.maker+' '+c.name+' · tipo de reglaje tomado de las Recomendaciones.'):'Sin coche de la lista elegido: se usarán los datos de la Calculadora.';
+  }
 }
 
 /* ---------- Arranque ---------- */
 document.addEventListener('DOMContentLoaded',()=>{});
-['tabCalc','tabDiag','tabParts','tabTel','tabProf'].forEach(id=>$(id).addEventListener('click',()=>selectTab(id)));
+['tabParts','tabRec'].forEach(id=>$(id).addEventListener('click',()=>selectTab(id)));
+document.querySelectorAll('#steps button').forEach(b=>b.addEventListener('click',()=>selectTab(SEC_FIRST[b.dataset.sec])));
+$('toRec').addEventListener('click',()=>selectTab('tabRec'));
+$('toTel').addEventListener('click',()=>selectTab('tabTel'));
+/* el selector de coche vive en la sección 2 */
+$('pickTop').prepend($('carPick').closest('.pickRow'),$('carSel'));
 $('uMetric').addEventListener('click',()=>{setUnits('metric',true);if(carNow())applyPartRanges(carNow());render()});
 $('uImp').addEventListener('click',()=>{setUnits('imperial',true);if(carNow())applyPartRanges(carNow());render()});
 $('kUnit').addEventListener('change',()=>{setKUnit($('kUnit').value,true);render()});
@@ -972,6 +1027,7 @@ const TEL_OBJ={
   road:{obj:0.05,tol:0.08},street:{obj:0.08,tol:0.10},dirt:{obj:0.00,tol:0.12},cross:{obj:0.00,tol:0.12},drift:{obj:-0.25,tol:0.15},drag:null
 };
 const TEL_UMB={curveAy:4,minSpd:8,bottom:0.97,bottomWarn:0.03,bottomBad:0.08,tracWarn:0.12,tracBad:0.25,lockWarn:0.10,lockBad:0.25,tempDiff:0.12};
+const GOALS={bal:'Equilibrado',exit:'Respuesta al salir de curva',accel:'Aceleración',entry:'Estabilidad al frenar y entrar',rotate:'Giro ágil',speed:'Velocidad punta'};
 let tl={ws:null,last:null,rec:false,S:[],stat:null,prev:null};
 const tlAvg=a=>a.reduce((x,y)=>x+y,0)/(a.length||1);
 function tlStat(msg,cls){const e=$('tlSt');e.className='tl-st '+(cls||'');e.innerHTML=msg}
@@ -997,7 +1053,7 @@ function tlMsg(m){
   }
   if(m.t!=='s')return;
   tl.last=m;tlLive(m);
-  if(tl.rec&&m.on&&m.spd>=1)tl.S.push(m);
+  if(tl.rec&&m.on)tl.S.push(m);
   if(tl.rec)tlRecSt();
 }
 function tlLive(m){
@@ -1022,14 +1078,34 @@ function tlRecSt(){
   const n=tl.S.length;
   $('tlRecSt').innerHTML='<b>Grabando…</b> '+n+' muestras (≈'+Math.round(n/30)+' s de conducción)'+(tl.last?' · vuelta '+tl.last.lap:'');
 }
+function tlNum(){return tlTests.length+1}
+function tlRecBtn(){$('tlRec').textContent=tl.rec?'Finalizar prueba '+tlNum():'Iniciar prueba '+tlNum();$('tlName').placeholder='Prueba '+tlNum()}
 function tlToggle(){
-  tl.rec=!tl.rec;$('tlRec').textContent=tl.rec?'Detener':'Iniciar';
+  tl.rec=!tl.rec;tlRecBtn();
   if(tl.rec){tl.S=[];tlRecSt();$('tlRes').hidden=true;if(!tl.last)$('tlRecSt').innerHTML='<b>Grabando…</b> aún no llegan datos del juego.'}
-  else tlAnalyze();
+  else{const r=tlAnalyze();if(r)tlSave(r)}
 }
-function tlClear(){tl.rec=false;tl.S=[];$('tlRec').textContent='Iniciar';$('tlRecSt').textContent='Sin grabar.';$('tlRes').hidden=true}
+function tlClear(){tl.rec=false;tl.S=[];tlRecBtn();$('tlRecSt').textContent='Sin grabar.';$('tlRes').hidden=true}
 
 /* ---------- Análisis ---------- */
+function tlLaps(S){
+  const L=[];if(!S.length)return L;let prev=S[0],first=true;const firstOk=S[0].cur<4;
+  for(let i=1;i<S.length;i++){const m=S[i];
+    if(m.lap!==prev.lap){if(m.lap>prev.lap&&m.last>0&&(!first||firstOk))L.push(+m.last.toFixed(2));first=false}
+    prev=m}
+  return L;
+}
+function tlT0100(S){
+  let best=null,t0=null;
+  for(const m of S){
+    if(m.spd<2&&m.gas>=200){if(t0===null)t0=m.ts}
+    else if(t0!==null){
+      if(m.gas<150){t0=null;continue}
+      if(m.spd>=27.78){const t=(m.ts-t0)/1000;if(t>0.5&&t<40&&(best===null||t<best))best=t;t0=null}
+    }
+  }
+  return best===null?null:+best.toFixed(2);
+}
 function tlMetrics(S){
   const ok=S.filter(m=>m.spd>=TEL_UMB.minSpd);
   const cur=ok.filter(m=>Math.abs(m.ax)>TEL_UMB.curveAy);
@@ -1049,10 +1125,11 @@ function tlMetrics(S){
     trac:fr(acc,m=>driven.some(i=>Math.abs(m.sr[i])>1)),nAcc:acc.length,
     lockF:fr(brk,m=>lk(m,[0,1])),lockR:fr(brk,m=>lk(m,[2,3])),nBrk:brk.length,
     tFR:tF&&tR?tF/tR:null,tLD:tL&&tD?tL/tD:null,rF:rng(0,1),rR:rng(2,3),dt:dt,
-    lap:S.length?Math.max(...S.map(m=>m.lap))-Math.min(...S.map(m=>m.lap))+1:0,best:tl.last?tl.last.best:0};
+    laps:tlLaps(S),exA:sal.length>=10?tlAvg(sal.map(m=>m.az||0)):null,t0100:tlT0100(S)};
 }
-function tlRecs(M,use){
-  const R=[],o=TEL_OBJ[use],P=(sev,t,w,a)=>R.push({sev,t,w,a});
+function tlRecs(M,use,goal){
+  goal=goal||'bal';
+  const R=[],o0=TEL_OBJ[use],o=o0?{obj:o0.obj+({rotate:-0.08,entry:0.06}[goal]||0),tol:o0.tol}:null,P=(sev,t,w,a)=>R.push({sev,t,w,a});
   if(o&&M.nCur>=30){
     const d=M.U-o.obj,ad=Math.abs(d),sev=ad<o.tol?'':ad<2*o.tol?'w':'s',big=ad>=2*o.tol;
     if(!sev)P('','Equilibrio del coche dentro de lo buscado','Subviraje/sobreviraje en curva '+M.U.toFixed(2)+' (objetivo '+o.obj.toFixed(2)+' ± '+o.tol.toFixed(2)+').',[]);
@@ -1068,46 +1145,252 @@ function tlRecs(M,use){
     if(v!==null&&v>TEL_UMB.bottomWarn)P(v>TEL_UMB.bottomBad?'s':'w','Suspensión '+(n==='delanteros'?'delantera':'trasera')+' llega al tope ('+Math.round(v*100)+' % del tiempo)','Se agota el recorrido de compresión.',
       ['Subir la altura '+(n==='delanteros'?'delantera':'trasera'),'Endurecer los muelles '+n,'Subir la compresión '+(n==='delanteros'?'delantera':'trasera')]);
   });
-  const tw=use==='drag'?TEL_UMB.tracWarn*.6:TEL_UMB.tracWarn;
+  const tw=(use==='drag'?TEL_UMB.tracWarn*.6:TEL_UMB.tracWarn)*((goal==='exit'||goal==='accel')?0.7:1);
   if(M.trac!==null&&M.nAcc>=30&&M.trac>tw)P(M.trac>TEL_UMB.tracBad?'s':'w','Pérdida de tracción a fondo ('+Math.round(M.trac*100)+' % del tiempo con acelerador a fondo)','Las ruedas motrices patinan al acelerar.',
     ['Bajar el bloqueo del diferencial en aceleración','Ablandar muelles y barra del eje motriz','Presión del eje motriz: bajar un poco','Subir la carga aerodinámica del eje motriz']);
   if(M.nBrk>=20){
     const f=M.lockF||0,r=M.lockR||0;
-    if(Math.max(f,r)>TEL_UMB.lockWarn)P(Math.max(f,r)>TEL_UMB.lockBad?'s':'w','Bloqueo al frenar ('+(r>f?'traseras':'delanteras')+')','Las ruedas '+(r>f?'traseras':'delanteras')+' se bloquean primero.',
+    if(Math.max(f,r)>TEL_UMB.lockWarn*(goal==='entry'?0.7:1))P(Math.max(f,r)>TEL_UMB.lockBad?'s':'w','Bloqueo al frenar ('+(r>f?'traseras':'delanteras')+')','Las ruedas '+(r>f?'traseras':'delanteras')+' se bloquean primero.',
       [r>f?'Equilibrio de frenos: llevarlo hacia delante':'Equilibrio de frenos: llevarlo hacia atrás','Presión de frenos: bajarla un poco']);
   }
   if(M.tFR&&Math.abs(M.tFR-1)>TEL_UMB.tempDiff)P('','Temperatura de neumáticos descompensada','Los '+(M.tFR>1?'delanteros':'traseros')+' trabajan '+Math.round(Math.abs(M.tFR-1)*100)+' % más calientes que los '+(M.tFR>1?'traseros':'delanteros')+'. Orientativo, no cambia nada por sí solo.',[]);
   if(M.tLD&&Math.abs(M.tLD-1)>TEL_UMB.tempDiff)P('','Lado izquierdo y derecho distintos en temperatura',(M.tLD>1?'Izquierdo':'Derecho')+' más caliente ('+Math.round(Math.abs(M.tLD-1)*100)+' %). Normal en circuitos con más curvas a un lado.',[]);
   if((use==='dirt'||use==='cross')&&M.rF&&M.rR&&Math.max(M.rF[1]-M.rF[0],M.rR[1]-M.rR[0])<0.2)P('w','Poco recorrido de suspensión usado','En tierra interesa usar más recorrido.',['Ablandar los muelles','Subir un poco la altura']);
+  if(o&&(goal==='exit'||goal==='accel')&&M.nSal>=20&&M.Us!==null){
+    const d=M.Us-o.obj;
+    if(d>o.tol)P('w','Al salir de curva el coche empuja (subviraje en la salida)','Con el gas abierto las ruedas delanteras se deslizan más que las traseras ('+M.Us.toFixed(2)+').',
+      ['Diferencial: bajar el bloqueo en aceleración','Barra estabilizadora delantera: ablandar un poco','Muelles delanteros: ablandar un poco']);
+    else if(d<-o.tol)P('w','Al salir de curva la trasera se desliza','Con el gas abierto las traseras se deslizan más que las delanteras ('+M.Us.toFixed(2)+').',
+      ['Diferencial: bajar el bloqueo en aceleración','Barra estabilizadora trasera: ablandar un poco','Presión trasera: bajar un poco','Carga aerodinámica trasera: subir']);
+  }
+  if(goal==='entry'&&o&&M.nEnt>=20&&M.Ue!==null&&M.Ue-o.obj<-o.tol)P('w','Inestable al entrar','La trasera se desliza más que la delantera al frenar y girar ('+M.Ue.toFixed(2)+').',
+    ['Convergencia trasera: más hacia dentro','Barra estabilizadora trasera: endurecer un poco','Diferencial: subir el bloqueo en deceleración','Equilibrio de frenos: llevarlo un poco hacia delante']);
+  if(goal==='accel'&&M.t0100===null&&use!=='drag')P('','Sin medida de 0–100 km/h','Para medirlo, arranca desde parado con el acelerador a fondo hasta pasar de 100 km/h sin levantar.',[]);
   return R;
 }
 function tlAnalyze(){
   const S=tl.S;
-  if(S.length<60){$('tlRecSt').innerHTML='Muy pocos datos ('+S.length+' muestras). Conduce al menos unos 30 s antes de detener.';$('tlRes').hidden=true;return}
-  const use=$('tlUse').value,M=tlMetrics(S),recs=tlRecs(M,use);
+  if(S.length<60){$('tlRecSt').innerHTML='Muy pocos datos ('+S.length+' muestras). Conduce al menos unos 30 s antes de detener.';$('tlRes').hidden=true;return null}
+  const use=$('tlUse').value,goal=$('tlGoal').value,M=tlMetrics(S),recs=tlRecs(M,use,goal);
   const f=(v,d)=>v===null||v===undefined?'–':(+v).toFixed(d),pc=v=>v===null||v===undefined?'–':Math.round(v*100)+' %';
-  const pv=tl.prev&&tl.prev.use===use?tl.prev.M:null;
-  const dl=(a,b,d,pcnt)=>pv&&a!==null&&b!==null?' <span class="tl-small">('+(a-b>=0?'+':'')+(pcnt?Math.round((a-b)*100)+' pts':(a-b).toFixed(d))+' vs. anterior)</span>':'';
+  const pt=tlTests.filter(t=>t.use===use).slice(-1)[0],pv=pt?pt.M:null;
+  const dl=(a,b,d,pcnt)=>pv&&a!==null&&b!==null?' <span class="tl-small">('+(a-b>=0?'+':'')+(pcnt?Math.round((a-b)*100)+' pts':(a-b).toFixed(d))+' vs. '+pt.name+')</span>':'';
   const rows=[['Muestras de conducción',M.nOk,''],['Muestras en curva',M.nCur,''],
     ['Subviraje (+) / sobreviraje (−), total',f(M.U,2),dl(M.U,pv&&pv.U,2)],['… al entrar (frenando)',f(M.Ue,2),''],['… a mitad de curva',f(M.Um,2),''],['… al salir (acelerando)',f(M.Us,2),''],
     ['Suspensión delantera al tope',pc(M.botF),dl(M.botF,pv&&pv.botF,0,1)],['Suspensión trasera al tope',pc(M.botR),dl(M.botR,pv&&pv.botR,0,1)],
     ['Ruedas motrices patinando a fondo',pc(M.trac),dl(M.trac,pv&&pv.trac,0,1)],['Bloqueo al frenar, del. / tras.',pc(M.lockF)+' / '+pc(M.lockR),''],
-    ['Vueltas registradas',M.lap,''],['Mejor vuelta del juego',M.best>0?M.best.toFixed(2)+' s':'–','']];
+    ['Aceleración media al salir de curva',M.exA===null?'–':f(M.exA,1)+' m/s²',''],['0–100 km/h (mejor intento)',M.t0100===null?'–':M.t0100.toFixed(2)+' s',''],['Vueltas con tiempo válido',M.laps.length,''],['Mejor vuelta',M.laps.length?Math.min(...M.laps).toFixed(2)+' s':'–',''],['Tiempo medio por vuelta',M.laps.length?tlAvg(M.laps).toFixed(2)+' s':'–','']];
   $('tlOut').innerHTML='<table class="tl-met">'+rows.map(r=>'<tr><th>'+r[0]+'</th><td class="n">'+r[1]+r[2]+'</td></tr>').join('')+'</table>'+
     '<h3 style="margin-top:16px">Qué tocar</h3><div style="display:grid;gap:10px;margin-top:8px">'+
     (recs.length?recs.map(x=>'<div class="tl-rec '+x.sev+'"><h4>'+x.t+'</h4><p>'+x.w+'</p>'+(x.a.length?'<ul>'+x.a.map(a=>'<li>'+a+'</li>').join('')+'</ul>':'')+'</div>').join(''):'<div class="tl-rec"><h4>Sin problemas detectados</h4><p>Con los umbrales actuales no hay nada que corregir.</p></div>')+
     '</div><p class="tl-small" style="margin-top:12px">Son indicaciones de dirección, no valores exactos: cambia una cosa a la vez, en pasos pequeños, y repite la prueba. Los umbrales son valores de partida sin calibrar con datos reales.</p>';
-  $('tlRes').hidden=false;tl.prev={use:use,M:M};
-  $('tlRecSt').textContent='Análisis listo con '+S.length+' muestras. Puedes iniciar otra prueba para compararla.';
+  $('tlRes').hidden=false;
+  return{M:M,recs:recs,use:use,goal:goal};
+}
+/* ---------- Pruebas guardadas y comparación ---------- */
+const TL_KEY='bdr-tel-tests';
+let tlTests=[];
+const tlAvgLap=t=>t.M&&t.M.laps&&t.M.laps.length?tlAvg(t.M.laps):null;
+function tlLoad(){try{const v=JSON.parse(localStorage.getItem(TL_KEY)||'[]');tlTests=Array.isArray(v)?v:[]}catch(e){tlTests=[]}}
+function tlPersist(){try{localStorage.setItem(TL_KEY,JSON.stringify(tlTests));return true}catch(e){return false}}
+function tlTrace(S){
+  const st=Math.max(1,Math.ceil(S.length/1500)),o=[],r=(x,d)=>+x.toFixed(d);
+  for(let i=0;i<S.length;i+=st){const m=S[i];
+    o.push([r(m.spd,1),m.gas,m.brk,m.str,r(m.ax,1),r((Math.abs(m.sa[0])+Math.abs(m.sa[1]))/2,2),r((Math.abs(m.sa[2])+Math.abs(m.sa[3]))/2,2),r(Math.max(m.nt[0],m.nt[1]),2),r(Math.max(m.nt[2],m.nt[3]),2),m.gear])}
+  return o;
+}
+function tlScore(t){
+  const M=t.M,o=TEL_OBJ[t.use],du=o&&M.U!==null&&M.U!==undefined?Math.abs(M.U-o.obj)/o.tol:0;
+  let sc=du+10*((M.botF||0)+(M.botR||0))+5*(M.trac||0)+5*Math.max(M.lockF||0,M.lockR||0);
+  if(t.goal==='exit'||t.goal==='accel'){sc+=5*(M.trac||0)-0.2*(M.exA||0)}
+  if(t.goal==='accel'&&M.t0100)sc+=0.1*M.t0100;
+  return sc;
+}
+const TL_TUNE=[['pF','Presión del.','Neumáticos','Presión','f'],['pR','Presión tras.','Neumáticos','Presión','r'],
+  ['camF','Caída del.','Alineación','Caída (°)','f'],['camR','Caída tras.','Alineación','Caída (°)','r'],
+  ['toeF','Convergencia del.','Alineación','Convergencia (°)','f'],['toeR','Convergencia tras.','Alineación','Convergencia (°)','r'],['caster','Avance','Alineación','Avance (°)','f'],
+  ['arbF','Barra del.','Barras estabilizadoras','Rigidez','f'],['arbR','Barra tras.','Barras estabilizadoras','Rigidez','r'],
+  ['kF','Muelle del.','Muelles','Rigidez','f'],['kR','Muelle tras.','Muelles','Rigidez','r'],
+  ['hF','Altura del.','Altura','Altura','f'],['hR','Altura tras.','Altura','Altura','r'],
+  ['rbF','Rebote del.','Amortiguación','Rebote','f'],['rbR','Rebote tras.','Amortiguación','Rebote','r'],
+  ['cpF','Compresión del.','Amortiguación','Compresión','f'],['cpR','Compresión tras.','Amortiguación','Compresión','r'],
+  ['aeF','Carga aero del.','Aerodinámica','*','f'],['aeR','Carga aero tras.','Aerodinámica','*','r'],
+  ['dAF','Dif. acel. del.','Diferencial','Aceleración','f'],['dAR','Dif. acel. tras.','Diferencial','Aceleración','r'],
+  ['dDF','Dif. decel. del.','Diferencial','Deceleración','f'],['dDR','Dif. decel. tras.','Diferencial','Deceleración','r'],['dC','Reparto central','Diferencial','Reparto central (trasero)','f'],
+  ['brB','Balance de frenos','Frenos','Balance (delantero %)','f'],['brP','Presión de frenos','Frenos','Presión (%)','f'],['fd','Relación final','Marchas','Relación final nueva','f']];
+function tlTuneRead(){const o={};TL_TUNE.forEach(([k])=>{const e=document.getElementById('tt_'+k);if(e&&e.value!==''){const v=parseFloat(e.value);if(Number.isFinite(v))o[k]=v}});return o}
+function tlCtx(){const c=carNow();let parts={};try{parts=JSON.parse(JSON.stringify(partSel))}catch(e){}
+  return{carId:c?c.id:'',carName:c?(c.year+' '+c.maker+' '+c.name):($('carName').value||''),parts:parts,inputs:collect().data,units:units}}
+function tlCellVal(c){
+  if(!c||c.v===null||c.v===undefined)return null;
+  const t=c.t,dv=t?fromSI(c.v,t):c.v,d=t==='p'&&units==='imperial'?1:(t==='k'&&kUnit==='lb'?0:(t==='h'?1:(c.d!==undefined?c.d:1)));
+  return +dv.toFixed(d);
+}
+function tlFillRec(){
+  const out=compute(readInputs());let n=0;
+  TL_TUNE.forEach(([k,,gt,rl,side])=>{
+    const g=out.groups.find(x=>x.title===gt);if(!g)return;
+    let row,cell;
+    if(gt==='Aerodinámica'){
+      row=g.rows[0];if(!row)return;
+      if(row.one){const wantF=row.l==='Carga delantera';if((k==='aeF')!==wantF)return;cell=row.f}
+      else cell=side==='f'?row.f:row.r;
+    }else{row=g.rows.find(x=>x.l===rl);if(!row)return;cell=side==='f'?row.f:(row.one?null:row.r)}
+    const v=tlCellVal(cell),e=$('tt_'+k);
+    if(e&&v!==null){e.value=v;n++}
+  });
+  $('tlMsg').className='tl-st ok';$('tlMsg').innerHTML='<b>Cargados '+n+' valores recomendados.</b> Corrígelos con lo que realmente pusiste en el juego.';
+}
+function tlTuneInit(){
+  $('tlTune').innerHTML=TL_TUNE.map(([k,l])=>'<label>'+l+'<input type="number" step="any" inputmode="decimal" id="tt_'+k+'"></label>').join('');
+  $('tlFillRec').addEventListener('click',tlFillRec);
+  $('tlTuneClr').addEventListener('click',()=>TL_TUNE.forEach(([k])=>{$('tt_'+k).value=''}));
+}
+function tlSave(r){
+  const l=tl.last||{},name=($('tlName').value.trim()||('Prueba '+tlNum())).slice(0,40);
+  const t={id:Date.now(),name:name,date:new Date().toISOString(),use:r.use,goal:r.goal,tune:tlTuneRead(),ctx:tlCtx(),car:{ord:l.ord,pi:l.pi,cls:l.cls,dt:l.dt},notes:$('tlNotes').value.trim(),
+    M:r.M,recs:r.recs.map(x=>({sev:x.sev,t:x.t})),trCols:['vel_ms','acel','freno','volante','acel_lateral','deslizDel','deslizTras','recorridoDel','recorridoTras','marcha'],tr:tlTrace(tl.S)};
+  tlTests.push(t);
+  const ok=tlPersist();
+  $('tlName').value='';tlRecBtn();
+  $('tlRecSt').innerHTML='Análisis listo y <b>guardado como «'+t.name+'»</b>'+(ok?'.':' solo en memoria: el navegador no dejó guardar (espacio lleno o modo privado). Descarga los datos antes de cerrar.')+' Cambia el reglaje en el juego y haz la siguiente prueba.';
+  tlRender();
+}
+function tlDate(t){try{return new Date(t.date).toLocaleString('es',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})}catch(e){return ''}}
+function tlUseName(u){const o=$('use').querySelector('option[value="'+u+'"]');return o?o.textContent:u}
+function tlRank(){
+  const L=tlTests.slice();const allLap=L.length&&L.every(t=>tlAvgLap(t)!==null);
+  L.sort((a,b)=>allLap&&Math.abs(tlAvgLap(a)-tlAvgLap(b))>=0.2?tlAvgLap(a)-tlAvgLap(b):tlScore(a)-tlScore(b));
+  return L;
+}
+function tlRender(){
+  const box=$('tlList');
+  if(!tlTests.length){box.innerHTML='<p class="tl-small">Aún no hay pruebas guardadas.</p>';$('tlCmpBox').hidden=true;tlRecBtn();return}
+  const rk=tlRank(),best=rk[0];
+  box.innerHTML=rk.map((t,i)=>{
+    const a=tlAvgLap(t);
+    return '<div class="tl-t'+(i===0&&tlTests.length>1?' best':'')+'"><b>'+tlEsc(t.name)+(i===0&&tlTests.length>1?'<span class="tl-bdg">mejor hasta ahora</span>':'')+'</b>'+
+      '<span class="m">'+tlDate(t)+' · '+tlUseName(t.use)+(t.goal&&t.goal!=='bal'?' · '+GOALS[t.goal]:'')+(t.tune&&Object.keys(t.tune).length?' · '+Object.keys(t.tune).length+' valores':'')+' · '+(a!==null?'media '+a.toFixed(2)+' s ('+t.M.laps.length+' vueltas)':'sin tiempos de vuelta')+' · índice '+tlScore(t).toFixed(2)+(t.notes?' · '+tlEsc(t.notes):'')+'</span>'+
+      '<span class="tl-bt"><button type="button" data-prof="'+t.id+'">Guardar como perfil</button><button type="button" data-del="'+t.id+'">Borrar</button></span></div>';
+  }).join('');
+  box.querySelectorAll('[data-del]').forEach(b=>b.addEventListener('click',()=>{
+    if(!confirm('¿Borrar esta prueba?'))return;
+    tlTests=tlTests.filter(t=>String(t.id)!==b.dataset.del);tlPersist();tlRender();
+  }));
+  box.querySelectorAll('[data-prof]').forEach(b=>b.addEventListener('click',()=>{const t=tlTests.find(x=>String(x.id)===b.dataset.prof);if(t)tlSaveProfile(t)}));
+  const opts=tlTests.map(t=>'<option value="'+t.id+'">'+tlEsc(t.name)+'</option>').join('');
+  const A=$('tlA'),B=$('tlB'),va=A.value,vb=B.value;
+  A.innerHTML=opts;B.innerHTML=opts;
+  const has=v=>tlTests.some(t=>String(t.id)===v);
+  A.value=has(va)?va:String(tlTests[Math.max(0,tlTests.length-2)].id);
+  B.value=has(vb)?vb:String(tlTests[tlTests.length-1].id);
+  if(tlTests.length>=2&&A.value===B.value){A.value=String(tlTests[tlTests.length-2].id);B.value=String(tlTests[tlTests.length-1].id)}
+  $('tlCmpBox').hidden=tlTests.length<2;
+  if(tlTests.length>=2)tlCompare();
+  tlRecBtn();
+}
+function tlSaveProfile(t){
+  if(carNow())syncCar();
+  const c=collect(),a=tlAvgLap(t),name=(($('carName').value.trim()||'Coche')+' · '+t.name).slice(0,60);
+  c.data.use=t.use;
+  const item={name:name,units:c.units,data:c.data,saved:new Date().toLocaleDateString('es'),tel:{prueba:t.name,uso:t.use,notas:t.notes||'',media:a,indice:+tlScore(t).toFixed(2),fecha:t.date}};
+  const at=profiles.findIndex(q=>q.name===name);
+  if(at>=0)profiles[at]=item;else profiles.push(item);
+  const ok=persist();renderProfiles();
+  tlMsg2('Perfil «'+name+'» guardado'+(ok?'. Lo encuentras en Perfiles.':' solo en esta sesión: usa Exportar en Perfiles.'),ok);
+}
+function tlEsc(x){return String(x).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
+function tlCompare(){
+  const A=tlTests.find(t=>String(t.id)===$('tlA').value),B=tlTests.find(t=>String(t.id)===$('tlB').value);
+  if(!A||!B)return;
+  if(A.id===B.id){$('tlCmp').innerHTML='<p class="tl-small">Elige dos pruebas distintas.</p>';return}
+  const f=(v,d)=>v===null||v===undefined?'–':(+v).toFixed(d),pc=v=>v===null||v===undefined?'–':Math.round(v*100)+' %';
+  const la=tlAvgLap(A),lb=tlAvgLap(B),ba=A.M.laps.length?Math.min(...A.M.laps):null,bb=B.M.laps.length?Math.min(...B.M.laps):null;
+  const du=t=>{const o=TEL_OBJ[t.use];return o&&t.M.U!==null&&t.M.U!==undefined?Math.abs(t.M.U-o.obj):null};
+  /* [etiqueta, valorA, valorB, texto A, texto B, margen mínimo para considerar diferencia] — menor es mejor */
+  const rows=[
+    ['Mejor vuelta',ba,bb,ba!==null?ba.toFixed(2)+' s':'–',bb!==null?bb.toFixed(2)+' s':'–',0.15],
+    ['Tiempo medio por vuelta',la,lb,la!==null?la.toFixed(2)+' s':'–',lb!==null?lb.toFixed(2)+' s':'–',0.2],
+    ['Equilibrio (distancia al objetivo)',du(A),du(B),f(du(A),2),f(du(B),2),0.03],
+    ['Subviraje (+) / sobreviraje (−)',null,null,f(A.M.U,2),f(B.M.U,2),0],
+    ['Suspensión delantera al tope',A.M.botF,B.M.botF,pc(A.M.botF),pc(B.M.botF),0.02],
+    ['Suspensión trasera al tope',A.M.botR,B.M.botR,pc(A.M.botR),pc(B.M.botR),0.02],
+    ['Patinaje de ruedas motrices',A.M.trac,B.M.trac,pc(A.M.trac),pc(B.M.trac),0.03],
+    ['Aceleración media al salir de curva',A.M.exA!=null&&B.M.exA!=null?-A.M.exA:null,A.M.exA!=null&&B.M.exA!=null?-B.M.exA:null,A.M.exA!=null?f(A.M.exA,1)+' m/s²':'–',B.M.exA!=null?f(B.M.exA,1)+' m/s²':'–',0.3],
+    ['0–100 km/h (mejor intento)',A.M.t0100,B.M.t0100,A.M.t0100?A.M.t0100.toFixed(2)+' s':'–',B.M.t0100?B.M.t0100.toFixed(2)+' s':'–',0.1],
+    ['Bloqueo al frenar (del.)',A.M.lockF,B.M.lockF,pc(A.M.lockF),pc(B.M.lockF),0.03],
+    ['Bloqueo al frenar (tras.)',A.M.lockR,B.M.lockR,pc(A.M.lockR),pc(B.M.lockR),0.03],
+    ['Índice combinado (menor = mejor)',tlScore(A),tlScore(B),tlScore(A).toFixed(2),tlScore(B).toFixed(2),0.3]];
+  const win=(a,b,m)=>a===null||b===null||a===undefined||b===undefined||m===0||Math.abs(a-b)<m?'':(a<b?'A':'B');
+  const body=rows.map(r=>{const w=win(r[1],r[2],r[5]);
+    return '<tr><th>'+r[0]+'</th><td class="n'+(w==='A'?' win':'')+'">'+r[3]+(w==='A'?' ✓':'')+'</td><td class="n'+(w==='B'?' win':'')+'">'+r[4]+(w==='B'?' ✓':'')+'</td></tr>'}).join('');
+  /* veredicto */
+  let ver='',w=null,why='';
+  if(A.goal==='accel'&&B.goal==='accel'&&A.M.t0100&&B.M.t0100&&Math.abs(A.M.t0100-B.M.t0100)>=0.1){w=A.M.t0100<B.M.t0100?A:B;why='acelera de 0 a 100 km/h '+Math.abs(A.M.t0100-B.M.t0100).toFixed(2)+' s más rápido'}
+  else if(la!==null&&lb!==null&&Math.abs(la-lb)>=0.2){w=la<lb?A:B;why='es '+Math.abs(la-lb).toFixed(2)+' s más rápida de media por vuelta'}
+  else{const sa=tlScore(A),sb=tlScore(B);
+    if(Math.abs(sa-sb)>=0.3){w=sa<sb?A:B;why=(la!==null&&lb!==null?'los tiempos son casi iguales (≤0.2 s), pero ':'sin tiempos comparables, ')+'tiene mejor comportamiento (índice '+Math.min(sa,sb).toFixed(2)+' frente a '+Math.max(sa,sb).toFixed(2)+')'}}
+  tl.win=w;
+  ver=w?'<b>Gana «'+tlEsc(w.name)+'»</b>: '+why+'.':'<b>Empate técnico</b>: no hay diferencias claras entre las dos pruebas.';
+  const warn=[];
+  if(A.car.ord&&B.car.ord&&A.car.ord!==B.car.ord)warn.push('son coches distintos');
+  else if(A.car.pi&&B.car.pi&&A.car.pi!==B.car.pi)warn.push('el PI es distinto ('+A.car.pi+' y '+B.car.pi+'), así que hay piezas cambiadas');
+  if(A.use!==B.use)warn.push('el tipo de reglaje es distinto');
+  if(Math.min(A.M.laps.length,B.M.laps.length)<3)warn.push('con menos de 3 vueltas por prueba el tiempo es poco fiable');
+  const lbl={};TL_TUNE.forEach(([k,l])=>{lbl[k]=l});
+  const diffs=[];TL_TUNE.forEach(([k])=>{const a=A.tune&&A.tune[k],b=B.tune&&B.tune[k];if(a!==undefined&&b!==undefined&&a!==b)diffs.push('<li>'+lbl[k]+': '+a+' → '+b+'</li>');else if((a===undefined)!==(b===undefined)&&(a!==undefined||b!==undefined))diffs.push('<li>'+lbl[k]+': '+(a===undefined?'–':a)+' → '+(b===undefined?'–':b)+'</li>')});
+  const tuneHtml=(A.tune&&B.tune&&(Object.keys(A.tune).length||Object.keys(B.tune).length))?'<h4 style="margin:12px 0 4px">Qué cambió en el reglaje (A → B)</h4>'+(diffs.length?'<ul class="tl-small">'+diffs.join('')+'</ul>':'<p class="tl-small">Los valores de reglaje anotados son iguales.</p>'):'<p class="tl-small" style="margin-top:10px">Anota los valores del reglaje en cada prueba para ver aquí qué cambió entre ellas.</p>';
+  const rl=t=>t.recs.filter(r=>r.sev).map(r=>'<li>'+tlEsc(r.t)+'</li>').join('')||'<li>Sin problemas marcados</li>';
+  $('tlCmp').innerHTML='<div class="tl-ver">'+ver+(w?'<div style="margin-top:8px"><button type="button" class="btn" id="tlWinProf">Guardar «'+tlEsc(w.name)+'» como perfil</button></div>':'')+'</div>'+(warn.length?'<p class="tl-small" style="margin:8px 0 0">Ojo: '+warn.join('; ')+'.</p>':'')+
+    '<table class="tl-met" style="margin-top:10px"><tr><th></th><th>A · '+tlEsc(A.name)+'</th><th>B · '+tlEsc(B.name)+'</th></tr>'+body+'</table>'+
+    tuneHtml+'<div class="tl-grid" style="margin-top:12px"><div><h4 style="margin:0 0 4px">Pendiente en A</h4><ul class="tl-small">'+rl(A)+'</ul>'+(A.notes?'<p class="tl-small">Notas: '+tlEsc(A.notes)+'</p>':'')+'</div><div><h4 style="margin:0 0 4px">Pendiente en B</h4><ul class="tl-small">'+rl(B)+'</ul>'+(B.notes?'<p class="tl-small">Notas: '+tlEsc(B.notes)+'</p>':'')+'</div></div>';
+  tlWinBind();
+}
+function tlWinBind(){const b=$('tlWinProf');if(!b)return;b.addEventListener('click',()=>{if(tl.win)tlSaveProfile(tl.win)});}
+function tlExportText(){
+  const c=carNow();
+  return JSON.stringify({app:'banco-de-reglajes',tipo:'pruebas-telemetria',version:2,exportado:new Date().toISOString(),unidades:units,
+    leeme:'Datos de pruebas de telemetría de Forza Horizon 6 para calibrar reglas de reglaje. Cada prueba trae métricas, tiempos de vuelta, valores de reglaje anotados, piezas montadas y un registro resumido (tr, columnas en trCols).',
+    cocheActual:c?{id:c.id,nombre:c.year+' '+c.maker+' '+c.name}:null,umbrales:{objetivos:TEL_OBJ,limites:TEL_UMB},
+    pruebas:tlTests,perfiles:profiles});
+}
+function tlMsg2(t,ok){const e=$('tlMsg');e.className='tl-st '+(ok?'ok':'bad');e.innerHTML='<b>'+t+'</b>'}
+function tlDownload(){
+  if(!tlTests.length){tlMsg2('No hay pruebas para exportar.',false);return}
+  try{const b=new Blob([tlExportText()],{type:'application/json'}),a=document.createElement('a');
+    a.href=URL.createObjectURL(b);a.download='pruebas-telemetria.json';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),2000);tlMsg2('Archivo descargado.',true)}
+  catch(e){tlMsg2('No se pudo descargar. Usa «Copiar datos».',false)}
+}
+function tlCopy(){
+  if(!tlTests.length){tlMsg2('No hay pruebas para exportar.',false);return}
+  const t=tlExportText();
+  const fb=()=>{const x=document.createElement('textarea');x.value=t;document.body.appendChild(x);x.select();try{document.execCommand('copy');tlMsg2('Datos copiados.',true)}catch(e){tlMsg2('No se pudo copiar. Usa «Descargar».',false)}x.remove()};
+  if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(t).then(()=>tlMsg2('Datos copiados.',true),fb);else fb();
+}
+function tlImport(){
+  try{
+    const d=JSON.parse($('tlImp').value);
+    if(!d||d.tipo!=='pruebas-telemetria'||!Array.isArray(d.pruebas))throw 0;
+    let n=0;d.pruebas.forEach(p=>{if(p&&p.M&&p.name&&!tlTests.some(t=>t.id===p.id)){tlTests.push(p);n++}});
+    let np=0;if(Array.isArray(d.perfiles))d.perfiles.forEach(q=>{if(q&&q.name&&q.data&&!profiles.some(x=>x.name===q.name)){profiles.push(q);np++}});
+    if(np){persist();renderProfiles()}
+    tlPersist();tlRender();$('tlImp').value='';$('tlImpBox').hidden=true;tlMsg2('Importadas '+n+' pruebas'+(np?' y '+np+' perfiles':'')+'.',true);
+  }catch(e){tlMsg2('El texto no tiene el formato esperado.',false)}
 }
 function tlInit(){
   const u=$('use'),s=$('tlUse');
   s.innerHTML=u.innerHTML;s.value=u.value;
+  $('tlGoal').innerHTML=$('goal').innerHTML;$('tlGoal').value=$('goal').value;tlTuneInit();
+  tlLoad();tlRender();
   $('tlConn').addEventListener('click',tlConnect);$('tlRec').addEventListener('click',tlToggle);$('tlClr').addEventListener('click',tlClear);
+  $('tlA').addEventListener('change',tlCompare);$('tlB').addEventListener('change',tlCompare);
+  $('tlDl').addEventListener('click',tlDownload);$('tlCp').addEventListener('click',tlCopy);
+  $('tlImpB').addEventListener('click',()=>{$('tlImpBox').hidden=!$('tlImpBox').hidden});$('tlImpGo').addEventListener('click',tlImport);
 }
 
 loadProfiles();
 tlInit();
+selectTab('tabCalc');
 refreshLabels();
 initCars();
 renderDiag();

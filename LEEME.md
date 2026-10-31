@@ -53,3 +53,10 @@ Barras estabilizadoras (1–65), rebote (1–20) y compresión (1–20) son fijo
 
 ## Telemetría
 La pestaña «Telemetría» lee los datos en vivo del juego (Data Out) mediante un pequeño programa receptor que corre en tu PC. Instrucciones en `herramientas/TELEMETRIA.md`. Funciona al abrir la página desde Chrome, Edge o Firefox en la misma PC del receptor.
+
+## Secciones
+1. **Calculadora**: rellenas tú todos los datos (Reglajes) y puedes usar el Diagnóstico por síntomas.
+2. **Coche**: eliges un coche de la lista, ves sus specs y piezas (Specs y piezas) y pasas a las Recomendaciones para ese coche.
+3. **Telemetría**: pruebas el reglaje en pista, comparas pruebas y guardas el perfil (Perfiles).
+
+Nota: la Calculadora y la Telemetría no llevan subpestañas; solo «Coche» tiene Specs y piezas / Recomendaciones. El diagnóstico por síntomas está al pie de la Calculadora y los perfiles al pie de la Telemetría.
