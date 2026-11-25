@@ -75,7 +75,8 @@ def compact(d):
             "tm": [r(x, 3) for x in d["tm"]], "tmp": [r(x, 1) for x in d["tmp"]], "ord": d["ord"], "cls": d["cls"], "pi": d["pi"],
             "dt": d["dt"], "pow": r(d["pow"], 0), "tor": r(d["tor"], 0), "boost": r(d["boost"], 2), "best": r(d["best"], 2),
             "last": r(d["last"], 2), "cur": r(d["cur"], 2), "lap": d["lap"], "gas": d["gas"], "brk": d["brk"], "gear": d["gear"],
-            "str": d["str"], "yaw": r(d["angv"][1], 3)}
+            "str": d["str"], "yaw": r(d["angv"][1], 3),
+            "rp": d["pos"]}
 
 # ---------------- WebSocket mínimo ----------------
 GUID = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11"

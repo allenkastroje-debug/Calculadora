@@ -25,3 +25,10 @@ Si aparece un aviso de que los datos no cuadran: ejecuta
 
 ## Datos para Claude
 «Descargar datos para Claude (.json)» incluye pruebas, perfiles, coche, piezas, reglajes y umbrales. Claude no guarda memoria por su cuenta entre conversaciones: pásale ese archivo cuando quieras que calibre las reglas o prepare un coche nuevo.
+
+## HUD aparte (hud.html)
+Tablero estilo SimHub que usa el mismo receptor. Se abre desde la pestaña Telemetría («Abrir el HUD en una ventana aparte») o directamente en `hud.html`.
+- **Muestra:** barra de revoluciones con zona de corte, velocidad, marcha, acelerador, freno, volante, agarre de cada rueda, posición, tiempo de vuelta, última y mejor vuelta, número de vuelta, velocidad máxima, potencia y par.
+- **Aviso de cambio:** cuando las rpm llegan al porcentaje que elijas (92 % por defecto) con el acelerador pisado, todo el HUD se pone rojo y aparece «▲ CAMBIA». Se ajusta en Ajustes, con un botón para probarlo. Ahí también se ve a qué rpm viste la potencia máxima, para que elijas un punto razonable.
+- **Controles:** km/h o mph, tecla H para ocultar la barra, fondo transparente para usarlo como «Fuente de navegador» en OBS. Clic en «Vel. máx» para reiniciarla.
+- No usa ni guarda posición ni mapa.

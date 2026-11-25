@@ -60,3 +60,6 @@ La pestaña «Telemetría» lee los datos en vivo del juego (Data Out) mediante 
 3. **Telemetría**: pruebas el reglaje en pista, comparas pruebas y guardas el perfil (Perfiles).
 
 Nota: la Calculadora y la Telemetría no llevan subpestañas; solo «Coche» tiene Specs y piezas / Recomendaciones. El diagnóstico por síntomas está al pie de la Calculadora y los perfiles al pie de la Telemetría.
+
+## HUD
+`hud.html` es un tablero aparte (revoluciones, velocidad, marcha, tiempos) con aviso de cambio en rojo. Ver `herramientas/TELEMETRIA.md`.
