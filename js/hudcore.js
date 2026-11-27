@@ -4,8 +4,8 @@
 'use strict';
 var store={get:function(k,d){try{var v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}},
            set:function(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
-var S=Object.assign({u:'kmh',url:'ws://127.0.0.1:8777',transp:false,sh:92,lead:150},store.get('bdr-hud2',{}));
-var H={S:S,last:null,lastAt:0,shift:false,rpmShift:null,mode:'fijo',force:0,maxSpd:0,
+var S=Object.assign({u:'kmh',url:'ws://127.0.0.1:8777',transp:false,sh:92,lead:280,auto:true},store.get('bdr-hud2',{}));
+var H={S:S,last:null,lastAt:0,shift:false,rpmShift:null,mode:'fijo',force:0,rate:0,prev:null,tFire:0,maxSpd:0,
        peak:{pow:0,rpm:0,tor:0,boost:0},frame:[],status:[],ord:0};
 var BIN=200,curves=store.get('bdr-hud-curves',{}),cur=null,dirty=false,medCache={},medAt=0;
 
@@ -78,15 +78,16 @@ function decide(m){
     }
   }
   if(rs===null)rs=mx*S.sh/100;
-  var trigger=mode==='curva'?rs-S.lead:rs;
   var pressing=m.gas>=100&&m.brk<40&&g>0;
-  var on=pressing&&(m.rpm>=trigger||(H.shift&&m.rpm>=trigger-150));
-  if(mode==='curva'&&m.rpm>=mx*0.985&&pressing)on=true;
+  /* predicción: rpm esperadas dentro de "lead" ms (como ForzaShiftTone) */
+  var ahead=m.rpm+Math.max(0,H.rate)*S.lead/1000;
+  var on=pressing&&(ahead>=rs||(H.shift&&ahead>=rs-150));
+  if(pressing&&(m.rpm>=mx*0.98||m.rpm+Math.max(0,H.rate)*0.1>=mx))on=true; /* tope de rpm */
   H.rpmShift=rs;H.mode=mode;
   return on;
 }
 H.setShift=function(on){
-  if(on===H.shift)return;H.shift=on;
+  if(on===H.shift)return;H.shift=on;if(on&&performance.now()>H.force)H.tFire=performance.now();
   document.body.classList.toggle('shift',on);
 };
 H.testShift=function(){H.force=performance.now()+2000;H.setShift(true);setTimeout(function(){if(performance.now()>=H.force)H.setShift(false)},2100)};
@@ -103,7 +104,12 @@ H.connect=function(){
   w.onmessage=function(ev){
     var m;try{m=JSON.parse(ev.data)}catch(x){return}
     if(m.t!=='s')return;
-    H.last=m;H.lastAt=performance.now();status('Recibiendo datos',true);
+    var nowp=performance.now();
+    if(H.prev&&m.on){var dtp=(nowp-H.prev.at)/1000;if(dtp>0.005&&dtp<0.5){H.rate=0.7*H.rate+0.3*((m.rpm-H.prev.rpm)/dtp)}}
+    if(H.prev&&m.on&&m.gear>H.prev.gear&&H.prev.gear>0&&H.tFire&&S.auto){
+      var gap=nowp-H.tFire;if(gap>80&&gap<1500){S.lead=Math.round(Math.max(100,Math.min(600,0.85*S.lead+0.15*gap)));H.saveS();H.leadSet&&H.leadSet(S.lead)}H.tFire=0}
+    H.prev={at:nowp,rpm:m.rpm,gear:m.gear};
+    H.last=m;H.lastAt=nowp;status('Recibiendo datos',true);
     if(m.on){
       learn(m);
       var v=m.spd*(S.u==='mph'?2.23694:3.6);if(v>H.maxSpd)H.maxSpd=v;
