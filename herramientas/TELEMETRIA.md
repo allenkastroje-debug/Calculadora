@@ -29,6 +29,14 @@ Si aparece un aviso de que los datos no cuadran: ejecuta
 ## HUD aparte (hud.html)
 Tablero estilo SimHub que usa el mismo receptor. Se abre desde la pestaña Telemetría («Abrir el HUD en una ventana aparte») o directamente en `hud.html`.
 - **Muestra:** barra de revoluciones con zona de corte, velocidad, marcha, acelerador, freno, volante, agarre de cada rueda, posición, tiempo de vuelta, última y mejor vuelta, número de vuelta, velocidad máxima, potencia y par.
-- **Aviso de cambio:** cuando las rpm llegan al porcentaje que elijas (92 % por defecto) con el acelerador pisado, todo el HUD se pone rojo y aparece «▲ CAMBIA». Se ajusta en Ajustes, con un botón para probarlo. Ahí también se ve a qué rpm viste la potencia máxima, para que elijas un punto razonable.
+- **Aviso de cambio (adaptativo):** el HUD ya no usa solo un porcentaje fijo. Mientras conduces aprende, por coche, la curva de potencia (acelerador a fondo, sin frenar y sin derrapar) y la relación de cada marcha. Con eso calcula la rpm a la que conviene cambiar: el punto donde, al subir de marcha, la potencia que tendrás ya no es menor que la que dejas. Sale en la barra como una línea blanca y en el diagnóstico. El HUD se pone rojo un poco antes («Adelantar el aviso», 150 rpm por defecto) para compensar tu reacción. Hasta que haya datos de al menos dos marchas usa el porcentaje fijo (92 % por defecto).
+- **Para que aprenda:** haz 2 o 3 aceleraciones a fondo por las marchas, en recta. Se guarda en el navegador. «Olvidar la curva» la borra (hazlo si cambias las piezas del coche).
+- **Diagnóstico:** en Ajustes › «Diagnóstico de datos» ves los valores crudos que llegan (rpm, marcha, acelerador, potencia…), el modo de aviso, las relaciones aprendidas y la curva de potencia.
 - **Controles:** km/h o mph, tecla H para ocultar la barra, fondo transparente para usarlo como «Fuente de navegador» en OBS. Clic en «Vel. máx» para reiniciarla.
 - No usa ni guarda posición ni mapa.
+
+## HUD 2 (hud2.html)
+Tablero circular inspirado en un cuadro de instrumentos deportivo: cuentarrevoluciones con aguja, marcha a la izquierda, velocidad a la derecha, y relojes pequeños de boost, potencia y par (las escalas se ajustan solas). Usa el mismo núcleo y el mismo aviso de cambio (marca ámbar en el tacómetro y todo en rojo). Mismos controles que el HUD 1.
+
+## Registro para revisar cambios (--registro)
+`python receptor-telemetria.py --registro carrera.csv` guarda ~30 filas por segundo (tiempo, velocidad, rpm, marcha, acelerador, freno, potencia, par, boost). Si el aviso sigue sin coincidir con lo que sientes, envíame ese CSV tras una carrera.

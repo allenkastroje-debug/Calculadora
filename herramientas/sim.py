@@ -53,6 +53,20 @@ def hudrun(secs=40,port=9999):
         pw=150000*math.sin(min(1,(rpm-1500)/5200)*3.14)+10000
         d=pk(1,ts,spd,rpm,0.,[.5]*4,[0.]*4,[.2+ph*.9]*4,[.2+ph*.9]*4,[90.]*4,255,0,g,int(40*math.sin(t)),lap=1+int(t/12),last=108.823,cur=t%12*9.1,pw=pw,rp=3)
         sock.sendto(d,('127.0.0.1',port));ts+=16;n+=1;time.sleep(1/60)
-if __name__=='__main__' and len(sys.argv)>1 and sys.argv[1]=='hud': hudrun(float(sys.argv[2]) if len(sys.argv)>2 else 40)
+def realrun(secs=60,port=9999):
+    # Coche "realista": relaciones R (rpm por m/s), curva de potencia con pico ~5600 rpm y caida hacia 7000
+    sock=socket.socket(socket.AF_INET,socket.SOCK_DGRAM);ts=0;R=[200,130,95,75,62];g=0;spd=6.;t0=time.time();dt=1/60.
+    def hp(r): return 220*max(0.05,1-((r-5600)/3600.)**2*(1.0 if r>5600 else 0.9))
+    while time.time()-t0<secs:
+        rpm=R[g]*spd
+        if rpm>6900 and g<4: g+=1;rpm=R[g]*spd
+        if rpm>7000: spd=7000/R[g]
+        if g==4 and rpm>=6990: spd=max(6.,spd-30);g=0
+        force=hp(rpm)*745.7;a=max(0.3,force/(1300*max(spd,3)))*(R[0]/R[g])*1.4 if g<4 else 6.0
+        spd+=a*dt
+        d=pk(1,ts,spd,R[g]*spd,0.,[.5]*4,[0.]*4,[.1]*4,[.1]*4,[90.]*4,255,0,g+1,0,pw=hp(R[g]*spd)*745.7,rpmmax=7200.)
+        sock.sendto(d,('127.0.0.1',port));ts+=16;time.sleep(dt)
+if __name__=='__main__' and len(sys.argv)>1 and sys.argv[1]=='real': realrun(float(sys.argv[2]) if len(sys.argv)>2 else 60)
+elif __name__=='__main__' and len(sys.argv)>1 and sys.argv[1]=='hud': hudrun(float(sys.argv[2]) if len(sys.argv)>2 else 40)
 elif __name__=='__main__' and len(sys.argv)>1 and sys.argv[1]=='launch': launch(t100=float(sys.argv[2]) if len(sys.argv)>2 else 4.6)
 elif __name__=='__main__': run(sys.argv[1] if len(sys.argv)>1 else 'bal',float(sys.argv[2]) if len(sys.argv)>2 else 40)

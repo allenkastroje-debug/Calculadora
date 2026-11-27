@@ -62,4 +62,4 @@ La pestaña «Telemetría» lee los datos en vivo del juego (Data Out) mediante 
 Nota: la Calculadora y la Telemetría no llevan subpestañas; solo «Coche» tiene Specs y piezas / Recomendaciones. El diagnóstico por síntomas está al pie de la Calculadora y los perfiles al pie de la Telemetría.
 
 ## HUD
-`hud.html` es un tablero aparte (revoluciones, velocidad, marcha, tiempos) con aviso de cambio en rojo. Ver `herramientas/TELEMETRIA.md`.
+`hud.html` (barra de revoluciones) y `hud2.html` (cuadro circular) son tableros aparte con aviso de cambio en rojo que aprende la curva de potencia del coche. Ver `herramientas/TELEMETRIA.md`.

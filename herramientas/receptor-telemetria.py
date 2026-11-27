@@ -8,6 +8,7 @@ Solo usa la biblioteca estándar de Python 3.8+. No instala nada.
 Uso:   python receptor-telemetria.py
        python receptor-telemetria.py --udp 9999 --ws 8777
        python receptor-telemetria.py --volcar captura.bin   (guarda 120 paquetes crudos para revisar el formato)
+       python receptor-telemetria.py --registro carrera.csv  (guarda un CSV de la conducción para revisar los cambios)
 """
 import argparse, asyncio, base64, hashlib, json, math, socket, struct, sys, threading, time
 
@@ -127,6 +128,7 @@ def main():
     ap.add_argument("--ws", type=int, default=8777, help="puerto WebSocket local para la página")
     ap.add_argument("--hz", type=int, default=30, help="paquetes por segundo que se envían a la página")
     ap.add_argument("--volcar", metavar="ARCHIVO", help="guarda 120 paquetes crudos para revisar el formato")
+    ap.add_argument("--registro", metavar="ARCHIVO.csv", help="guarda un registro (CSV) de vel, rpm, marcha, acelerador, potencia... para revisar los cambios de marcha")
     a = ap.parse_args()
     if 5200 <= a.udp <= 5300:
         sys.exit("Ese puerto lo usa el juego internamente. Elige otro (por ejemplo 9999).")
@@ -134,6 +136,8 @@ def main():
     loop = asyncio.new_event_loop(); asyncio.set_event_loop(loop)
     dump = open(a.volcar, "wb") if a.volcar else None
     state = {"dumped": 0, "next": 0.0}
+    log = open(a.registro, "w", encoding="utf-8", newline="") if a.registro else None
+    if log: log.write("ts_ms,vel_ms,rpm,rpm_max,marcha,acel,freno,potencia_w,par_nm,boost,coche\n")
 
     def push(msg):
         w = frame(json.dumps(msg, separators=(",", ":")))
@@ -157,6 +161,10 @@ def main():
         if now >= state["next"]:
             state["next"] = now + 1.0 / a.hz
             push(compact(d))
+            if log and d["on"]:
+                log.write("%d,%.2f,%.0f,%.0f,%d,%d,%d,%.0f,%.0f,%.2f,%d\n" % (d["ts"], d["spd"], d["rpm"], d["rpmMax"], d["gear"], d["gas"], d["brk"], d["pow"], d["tor"], d["boost"], d["ord"]))
+                if state.get("n", 0) % 30 == 0: log.flush()
+                state["n"] = state.get("n", 0) + 1
 
     def udp_thread():
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)

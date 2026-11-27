@@ -82,6 +82,8 @@ body.shift #info .g4,body.shift #info .g4+.g4{border-color:#7a1f1a}
 .steer i{position:absolute;top:-1px;bottom:-1px;width:14px;margin-left:-7px;border-radius:999px;background:var(--accent);left:50%}
 #nodata{position:absolute;inset:0;display:none;place-items:center;background:rgba(11,13,16,.8);font:500 22px var(--body);color:var(--muted);text-align:center;padding:30px}
 #nodata.on{display:grid}
+#shMark{display:none}body.hasSh #shMark{display:block}
+#diag summary{outline-offset:2px}
 </style>
 </head>
 <body>
@@ -92,10 +94,17 @@ body.shift #info .g4,body.shift #info .g4+.g4{border-color:#7a1f1a}
 </div>
 <div class="set" id="set">
   <label>Dirección del receptor<input type="text" id="url" value="ws://127.0.0.1:8777" spellcheck="false"></label>
-  <label>Aviso de cambio de marcha: <b id="shV">92</b> % de las rpm máximas
+  <label>Aviso sin curva aprendida: <b id="shV">92</b> % de las rpm máximas
     <span class="row"><input type="range" id="sh" min="70" max="100" value="92"><button type="button" id="shTest">Probar aviso</button></span></label>
+  <label>Adelantar el aviso: <b id="ldV">150</b> rpm
+    <span class="row"><input type="range" id="ld" min="0" max="600" step="50" value="150"></span></label>
   <label style="min-width:auto"><span>Fondo transparente (OBS)</span><input type="checkbox" id="transp"></label>
-  <span class="st" id="pk">Potencia máxima vista: aún sin datos.</span>
+  <details id="diag" style="flex-basis:100%"><summary class="st" style="cursor:pointer">Diagnóstico de datos y curva de potencia aprendida</summary>
+    <div class="row" style="margin-top:8px;align-items:flex-start;flex-wrap:wrap;gap:16px">
+      <pre id="dg" style="margin:0;font:12px/1.5 var(--mono);color:var(--muted);min-width:290px"></pre>
+      <canvas id="cvp" width="420" height="190" style="border:1px solid var(--line);border-radius:6px;background:var(--surface)"></canvas>
+      <button type="button" id="rsC">Olvidar la curva de este coche</button>
+    </div></details>
   <span class="st">Tecla <b>H</b> oculta o muestra la barra. Haz clic en «Vel. máx» para reiniciarla.</span>
 </div>
 <div id="fit">
@@ -110,6 +119,7 @@ body.shift #info .g4,body.shift #info .g4+.g4{border-color:#7a1f1a}
         <g id="ticks" stroke="#0b0d10" stroke-width="4"></g>
       </g>
       <path id="bandLn" d="" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linejoin="round"/>
+      <line id="shMark" x1="0" x2="0" y1="-6" y2="306" stroke="#fff" stroke-width="4" stroke-dasharray="10 6" opacity=".95"/>
     </svg>
     <span class="rpmmax" id="rpmMax">0</span>
     <div class="rpmbox"><b id="rpm">0</b><small>RPM</small></div>
@@ -129,20 +139,17 @@ body.shift #info .g4,body.shift #info .g4+.g4{border-color:#7a1f1a}
   <div id="nodata">Sin datos del juego.<br>Abre el receptor, activa Data Out y conduce.</div>
 </div>
 </div>
+<script src="js/hudcore.js"></script>
 <script>
 (function(){
 'use strict';
-const $=id=>document.getElementById(id);
-const store={get(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
-const S=Object.assign({u:'kmh',url:'ws://127.0.0.1:8777',transp:false,sh:92},store.get('bdr-hud2',{}));
-const saveS=()=>store.set('bdr-hud2',S);
+const $=id=>document.getElementById(id),H=window.HUD,S=H.S;
 /* ---------- escala ---------- */
 function fit(){const f=$('fit'),w=f.clientWidth,h=f.clientHeight,k=Math.min(w/880,h/590);const hud=$('hud');hud.style.transform='scale('+k+')';hud.style.left=((w-880*k)/2)+'px';hud.style.top=((h-590*k)/2)+'px'}
 window.addEventListener('resize',fit);
 /* ---------- forma de la barra de revoluciones ---------- */
 const TOP=[[0,238],[80,140],[145,85],[215,35],[320,0],[740,0]],BOT=[[0,295],[80,210],[145,155],[215,110],[320,75],[740,75]];
-function cr(P,n){ // Catmull-Rom entre los puntos curvos
-  const out=[];for(let i=0;i<P.length-1;i++){const p0=P[Math.max(0,i-1)],p1=P[i],p2=P[i+1],p3=P[Math.min(P.length-1,i+2)];
+function cr(P){const out=[];for(let i=0;i<P.length-1;i++){const p0=P[Math.max(0,i-1)],p1=P[i],p2=P[i+1],p3=P[Math.min(P.length-1,i+2)];
     const steps=i<P.length-2?12:1;for(let s=0;s<steps;s++){const t=s/steps,t2=t*t,t3=t2*t;
       out.push([0.5*((2*p1[0])+(-p0[0]+p2[0])*t+(2*p0[0]-5*p1[0]+4*p2[0]-p3[0])*t2+(-p0[0]+3*p1[0]-3*p2[0]+p3[0])*t3),
                 0.5*((2*p1[1])+(-p0[1]+p2[1])*t+(2*p0[1]-5*p1[1]+4*p2[1]-p3[1])*t2+(-p0[1]+3*p1[1]-3*p2[1]+p3[1])*t3)])}}
@@ -154,62 +161,73 @@ let tickMax=0;
 function ticks(max){if(max===tickMax)return;tickMax=max;const g=$('ticks');g.innerHTML='';
   for(let k=1000;k<max;k+=1000){const x=740*k/max,l=document.createElementNS('http://www.w3.org/2000/svg','line');l.setAttribute('x1',x);l.setAttribute('x2',x);l.setAttribute('y1',0);l.setAttribute('y2',300);g.appendChild(l)}
   $('rpmMax').textContent=Math.round(max)}
-/* ---------- datos ---------- */
 const fmtT=t=>{if(!(t>0))return '–';const m=Math.floor(t/60),s=t-m*60;return m+':'+(s<10?'0':'')+s.toFixed(3)};
-let maxSpd=0,peakPow=0,peakRpm=0,shift=false,force=0,last=null,lastAt=0;
-function setShift(on){if(on===shift)return;shift=on;document.body.classList.toggle('shift',on)}
-function draw(m){
+/* ---------- dibujo ---------- */
+H.onFrame(function(m){
+  if(!m.on)return;
   const k=S.u==='mph'?2.23694:3.6,v=m.spd*k;
-  $('spd').textContent=Math.round(v);$('spdU').textContent=S.u==='mph'?'MPH':'KMH';
-  if(v>maxSpd){maxSpd=v;$('mx').textContent=Math.round(v)}
+  $('spd').textContent=Math.round(v);$('spdU').textContent=S.u==='mph'?'MPH':'KMH';$('mx').textContent=Math.round(H.maxSpd);
   $('gear').textContent=m.gear===0?'R':(m.gear||'–');
-  $('rpm').textContent=Math.round(m.rpm);ticks(m.rpmMax>0?m.rpmMax:8000);
-  const mx=m.rpmMax>0?m.rpmMax:8000,f=Math.max(0,Math.min(1,m.rpm/mx)),W=740*f,aW=Math.min(W,740*.85);
+  $('rpm').textContent=Math.round(m.rpm);
+  const mx=m.rpmMax>0?m.rpmMax:8000;ticks(mx);
+  const f=Math.max(0,Math.min(1,m.rpm/mx)),W=740*f,aW=Math.min(W,740*.85);
   $('fillA').setAttribute('width',aW);$('fillB').setAttribute('x',aW);$('fillB').setAttribute('width',Math.max(0,W-aW));
+  if(H.rpmShift){const x=740*Math.min(1,H.rpmShift/mx);$('shMark').setAttribute('x1',x);$('shMark').setAttribute('x2',x);document.body.classList.add('hasSh')}
   $('gas').style.height=(m.gas/255*100)+'%';$('brk').style.height=(m.brk/255*100)+'%';
   $('str').style.left=(50+m.str/127*48)+'%';
   [...$('ty').children].forEach((e,i)=>{const c=m.cs?Math.abs(m.cs[i]):0;e.className=c>1?'lost':(c>.75?'warn':'');e.textContent=c.toFixed(2)});
   $('pos').textContent=m.rp>0?m.rp:'–';$('lap').textContent=m.lap!=null?m.lap:'–';
   $('cur').textContent=fmtT(m.cur);$('last').textContent=fmtT(m.last);$('best').textContent=fmtT(m.best);
   $('hp').textContent=m.pow>0?Math.round(m.pow/745.7):'–';$('tq').textContent=m.tor>0?Math.round(m.tor):'–';
-  /* aviso de cambio: rpm altas con el acelerador pisado; histéresis de 3 puntos */
-  const lim=S.sh/100,on=m.gas>=100&&m.brk<40&&m.gear>0&&(f>=lim||(shift&&f>=lim-.03));
-  setShift(on||performance.now()<force);
-  if(m.pow>peakPow&&m.gas>200){peakPow=m.pow;peakRpm=m.rpm;$('pk').textContent='Potencia máxima vista: '+Math.round(peakPow/745.7)+' hp a '+Math.round(peakRpm)+' rpm ('+Math.round(peakRpm/mx*100)+' % de las rpm máximas).'}
+  if($('diag').open)diag(m);
+});
+/* ---------- diagnóstico ---------- */
+function diag(m){
+  const r=H.ratios(),cv=H.curve();
+  $('dg').textContent=
+    'rpm '+Math.round(m.rpm)+' / máx '+Math.round(m.rpmMax)+' (ralentí '+Math.round(m.rpmIdle||0)+')\n'+
+    'marcha '+m.gear+'   vel '+m.spd.toFixed(1)+' m/s\n'+
+    'acel '+m.gas+'  freno '+m.brk+'\n'+
+    'potencia '+Math.round(m.pow/745.7)+' hp   par '+Math.round(m.tor)+' N·m   boost '+m.boost+'\n'+
+    'coche nº '+m.ord+'  PI '+m.pi+'\n'+
+    'aviso: '+(H.mode==='curva'?'por curva de potencia':'por porcentaje fijo')+' · cambio a '+Math.round(H.rpmShift||0)+' rpm\n'+
+    'puntos de curva: '+cv.length+'\n'+
+    'relaciones (rpm por m/s): '+(Object.keys(r).map(g=>g+'ª '+r[g]).join(' · ')||'aprendiendo…');
+  const c=$('cvp'),x=c.getContext('2d'),w=c.width,h=c.height;
+  x.clearRect(0,0,w,h);
+  x.fillStyle='#8d98a5';x.font='11px system-ui';
+  const mx=m.rpmMax>0?m.rpmMax:8000;
+  let top=50;cv.forEach(p=>{if(p[1]>top)top=p[1]});top=Math.ceil(top/50)*50;
+  const X=r=>30+(w-40)*r/mx,Y=p=>h-22-(h-36)*p/top;
+  x.strokeStyle='#262d36';for(let t=0;t<=top;t+=50){x.beginPath();x.moveTo(30,Y(t));x.lineTo(w-10,Y(t));x.stroke()}
+  for(let k=0;k<=mx;k+=1000){x.fillText(String(k/1000),X(k)-3,h-8)}
+  x.fillText('hp',2,12);
+  if(cv.length>1){x.strokeStyle='#C6F432';x.lineWidth=2;x.beginPath();cv.forEach((p,i)=>i?x.lineTo(X(p[0]),Y(p[1])):x.moveTo(X(p[0]),Y(p[1])));x.stroke()}
+  x.lineWidth=1;x.strokeStyle='#fff';x.setLineDash([4,3]);x.beginPath();x.moveTo(X(m.rpm),10);x.lineTo(X(m.rpm),h-22);x.stroke();
+  x.strokeStyle='#FF3B30';x.beginPath();x.moveTo(X(H.rpmShift||0),10);x.lineTo(X(H.rpmShift||0),h-22);x.stroke();x.setLineDash([]);
 }
+$('diag').addEventListener('toggle',()=>{if(H.last)diag(H.last)});
+$('rsC').addEventListener('click',()=>{if(confirm('¿Olvidar la curva aprendida de este coche?'))H.resetCurve()});
 /* ---------- controles ---------- */
 function applyUI(){
   document.querySelectorAll('[data-u]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.u===S.u)));
   $('url').value=S.url;$('transp').checked=S.transp;document.body.classList.toggle('transp',S.transp);
-  $('sh').value=S.sh;$('shV').textContent=S.sh;saveS();fit();
+  $('sh').value=S.sh;$('shV').textContent=S.sh;$('ld').value=S.lead;$('ldV').textContent=S.lead;H.saveS();fit();
 }
-document.querySelectorAll('[data-u]').forEach(b=>b.addEventListener('click',()=>{S.u=b.dataset.u;maxSpd=0;$('mx').textContent='0';applyUI()}));
+document.querySelectorAll('[data-u]').forEach(b=>b.addEventListener('click',()=>{S.u=b.dataset.u;H.maxSpd=0;applyUI()}));
 $('bSet').addEventListener('click',()=>{const o=$('set').classList.toggle('on');$('bSet').setAttribute('aria-expanded',String(o));fit()});
 $('bHide').addEventListener('click',()=>{$('bar').classList.add('off');$('set').classList.remove('on');fit()});
 document.addEventListener('keydown',e=>{if((e.key==='h'||e.key==='H')&&!(document.activeElement&&document.activeElement.tagName==='INPUT')){$('bar').classList.toggle('off');$('set').classList.remove('on');fit()}});
-$('url').addEventListener('change',()=>{S.url=$('url').value.trim();saveS();connect()});
+$('url').addEventListener('change',()=>{S.url=$('url').value.trim();H.saveS();H.connect()});
 $('transp').addEventListener('change',()=>{S.transp=$('transp').checked;applyUI()});
-$('sh').addEventListener('input',()=>{S.sh=+$('sh').value;$('shV').textContent=S.sh;saveS()});
-$('shTest').addEventListener('click',()=>{force=performance.now()+2000;setShift(true);setTimeout(()=>{if(performance.now()>=force)setShift(false)},2100)});
-$('mxBox').addEventListener('click',()=>{maxSpd=0;$('mx').textContent='0'});
-/* ---------- conexión ---------- */
-let ws=null,retry=null,want=true;
-function setSt(t,ok){$('st').textContent=t;$('dot').className='dot'+(ok?' ok':'')}
-function connect(){
-  if(ws){want=false;try{ws.close()}catch(e){}ws=null}
-  want=true;clearTimeout(retry);
-  let w;try{w=new WebSocket(S.url)}catch(e){setSt('Dirección no válida',false);return}
-  ws=w;setSt('Conectando…',false);
-  w.onopen=()=>setSt('Conectado · esperando datos',true);
-  w.onmessage=ev=>{let m;try{m=JSON.parse(ev.data)}catch(x){return}
-    if(m.t!=='s')return;last=m;lastAt=performance.now();setSt('Recibiendo datos',true);if(m.on)draw(m);else setShift(false)};
-  w.onclose=()=>{if(ws===w){ws=null;setSt('Sin conexión · reintentando',false);if(want)retry=setTimeout(connect,2000)}};
-  w.onerror=()=>{};
-}
-setInterval(()=>{const stale=!last||performance.now()-lastAt>2500;$('nodata').classList.toggle('on',stale);if(stale)setShift(performance.now()<force)},400);
+$('sh').addEventListener('input',()=>{S.sh=+$('sh').value;$('shV').textContent=S.sh;H.saveS()});
+$('ld').addEventListener('input',()=>{S.lead=+$('ld').value;$('ldV').textContent=S.lead;H.saveS()});
+$('shTest').addEventListener('click',()=>H.testShift());
+$('mxBox').addEventListener('click',()=>{H.maxSpd=0;$('mx').textContent='0'});
+H.onStatus((t,ok)=>{$('st').textContent=t;$('dot').className='dot'+(ok?' ok':'')});
+setInterval(()=>$('nodata').classList.toggle('on',H.stale()),400);
 if(location.hash==='#kiosk')$('bar').classList.add('off');
-applyUI();connect();
-window.__hud={S:S,get shift(){return shift}};
+applyUI();H.connect();
 })();
 </script>
 </body>
