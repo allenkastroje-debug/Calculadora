@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Elegir HUD · Banco de Reglajes</title>
+<link rel="icon" href="icons/icon-192.png">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=Saira+Condensed:wght@500;600;700&display=swap">
+<style>
+:root{--bg:#0b0d10;--surface:#14181d;--line:#262d36;--ink:#eef2f6;--muted:#8d98a5;--accent:#C6F432;--accent-ink:#10140a;--display:"Saira Condensed","Arial Narrow",Impact,sans-serif;--body:"IBM Plex Sans",system-ui,sans-serif}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 var(--body)}
+main{max-width:1100px;margin:0 auto;padding:24px 16px 40px}
+h1{font:700 34px/1.1 var(--display);margin:0 0 6px;letter-spacing:.02em}
+p.sub{color:var(--muted);margin:0 0 22px;max-width:60ch}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:16px}
+.card{display:flex;flex-direction:column;background:var(--surface);border:1px solid var(--line);border-radius:10px;overflow:hidden;text-decoration:none;color:inherit}
+.card:hover,.card:focus-visible{border-color:var(--accent);outline:none}
+.card img{display:block;width:100%;aspect-ratio:16/10;object-fit:contain;background:#000;border-bottom:1px solid var(--line)}
+.card div{padding:12px 14px 14px}
+.card h2{margin:0 0 4px;font:700 24px/1.1 var(--display);letter-spacing:.03em}
+.card span{color:var(--muted);font-size:13.5px}
+.card b{display:inline-block;margin-top:10px;background:var(--accent);color:var(--accent-ink);border-radius:6px;padding:5px 12px;font-size:14px}
+.back{display:inline-block;margin-bottom:14px;color:var(--muted)}
+small{display:block;margin-top:20px;color:var(--muted)}
+</style>
+</head>
+<body>
+<main>
+<a class="back" href="index.html">← Volver a la app</a>
+<h1>Elige tu HUD</h1>
+<p class="sub">Los tres usan el mismo receptor y el mismo aviso de cambio (todo el HUD se pone en rojo). Se abre en esta misma ventana; en cada HUD hay un enlace «Cambiar de HUD» para volver aquí.</p>
+<div class="grid">
+  <a class="card" href="hud.html"><img src="img/hud1.png" alt="Vista previa del HUD 1: barra de revoluciones" loading="lazy"><div><h2>HUD 1 · Barra</h2><span>Barra de revoluciones, velocidad grande, neumáticos, pedales, volante y tiempos.</span><br><b>Abrir</b></div></a>
+  <a class="card" href="hud2.html"><img src="img/hud2.png" alt="Vista previa del HUD 2: tacómetro circular" loading="lazy"><div><h2>HUD 2 · Tacómetro</h2><span>Tacómetro central con aguja, marcha y velocidad a los lados, relojes de boost, potencia y par.</span><br><b>Abrir</b></div></a>
+  <a class="card" href="hud3.html"><img src="img/hud3.png" alt="Vista previa del HUD 3: cuadro de dos relojes" loading="lazy"><div><h2>HUD 3 · Dos relojes</h2><span>Cuadro con tacómetro y velocímetro redondos, marcha y velocidad digital al centro, mejor y última vuelta.</span><br><b>Abrir</b></div></a>
+</div>
+<small>Las imágenes son de ejemplo con datos de prueba.</small>
+</main>
+</body>
+</html>

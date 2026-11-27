@@ -1393,8 +1393,7 @@ function tlInit(){
   s.innerHTML=u.innerHTML;s.value=u.value;
   $('tlGoal').innerHTML=$('goal').innerHTML;$('tlGoal').value=$('goal').value;tlTuneInit();
   tlLoad();tlRender();
-  try{fetch('hud.html',{method:'HEAD'}).then(r=>{if(r.ok)$('tlHud').hidden=false}).catch(()=>{})}catch(e){}
-try{fetch('hud2.html',{method:'HEAD'}).then(r=>{if(r.ok)$('tlHud2').hidden=false}).catch(()=>{})}catch(e){}
+  try{fetch('huds.html',{method:'HEAD'}).then(r=>{if(r.ok)$('tlHud').hidden=false}).catch(()=>{})}catch(e){}
   $('tlConn').addEventListener('click',tlConnect);$('tlRec').addEventListener('click',tlToggle);$('tlClr').addEventListener('click',tlClear);
   $('tlA').addEventListener('change',tlCompare);$('tlB').addEventListener('change',tlCompare);
   $('tlDl').addEventListener('click',tlDownload);$('tlCp').addEventListener('click',tlCopy);

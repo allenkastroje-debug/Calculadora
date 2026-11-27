@@ -40,3 +40,6 @@ Tablero circular inspirado en un cuadro de instrumentos deportivo: cuentarrevolu
 
 ## Registro para revisar cambios (--registro)
 `python receptor-telemetria.py --registro carrera.csv` guarda ~30 filas por segundo (tiempo, velocidad, rpm, marcha, acelerador, freno, potencia, par, boost). Si el aviso sigue sin coincidir con lo que sientes, envíame ese CSV tras una carrera.
+
+## HUD 3 (hud3.html) y selector (huds.html)
+`huds.html` es una página para elegir entre los tres HUD con una vista previa de cada uno; se abre desde la pestaña Telemetría. El HUD 3 se basa en un cuadro de dos relojes: tacómetro a la izquierda (con mini indicador de boost y barra de par), velocímetro a la derecha (con barra de potencia), marcha y velocidad digital al centro, y arriba posición, vuelta, velocidad máxima y tiempo de vuelta, con mejor y última vuelta abajo. Se quitaron las cosas que el juego no envía o no hacen falta: combustible (ilimitado), temperatura del agua y diferencia con el rival (gap).
