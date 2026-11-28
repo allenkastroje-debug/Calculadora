@@ -1039,7 +1039,7 @@ const TEL_OBJ={
 };
 const TEL_UMB={curveAy:4,minSpd:8,bottom:0.97,bottomWarn:0.03,bottomBad:0.08,tracWarn:0.12,tracBad:0.25,lockWarn:0.10,lockBad:0.25,tempDiff:0.12};
 const GOALS={bal:'Equilibrado',exit:'Respuesta al salir de curva',accel:'Aceleración',entry:'Estabilidad al frenar y entrar',rotate:'Giro ágil',speed:'Velocidad punta'};
-let tl={ws:null,last:null,rec:false,S:[],stat:null,prev:null};
+let tl={ws:null,last:null,rec:false,S:[],stat:null,prev:null,bad:0};
 const tlAvg=a=>a.reduce((x,y)=>x+y,0)/(a.length||1);
 function tlStat(msg,cls){const e=$('tlSt');e.className='tl-st '+(cls||'');e.innerHTML=msg}
 function tlConnect(){
@@ -1050,6 +1050,12 @@ function tlConnect(){
   w.onmessage=ev=>{let m;try{m=JSON.parse(ev.data)}catch(e){return}tlMsg(m)};
   w.onerror=()=>{};
   w.onclose=()=>{tl.ws=null;$('tlConn').textContent='Conectar';tlStat('<b>Sin conexión.</b> Comprueba que el receptor esté abierto y que abres la página en la misma PC (algunos navegadores, como Safari, bloquean esta conexión).','bad')};
+}
+function tlSampleValid(m){
+  const nums=['ts','rpm','rpmMax','spd','gas','brk','gear','str','ax','az','pow','tor'];
+  if(!nums.every(k=>Number.isFinite(m[k])))return false;
+  const arrays=['nt','sr','sa','cs','tmp'];
+  return arrays.every(k=>Array.isArray(m[k])&&m[k].length===4&&m[k].every(Number.isFinite));
 }
 function tlMsg(m){
   if(m.t==='stat'){
@@ -1063,6 +1069,7 @@ function tlMsg(m){
     return;
   }
   if(m.t!=='s')return;
+  if(!tlSampleValid(m)){tl.bad++;if(tl.rec)tlRecSt();return}
   tl.last=m;tlLive(m);
   if(tl.rec&&m.on)tl.S.push(m);
   if(tl.rec)tlRecSt();
@@ -1093,7 +1100,7 @@ function tlNum(){return tlTests.length+1}
 function tlRecBtn(){$('tlRec').textContent=tl.rec?'Finalizar prueba '+tlNum():'Iniciar prueba '+tlNum();$('tlName').placeholder='Prueba '+tlNum()}
 function tlToggle(){
   tl.rec=!tl.rec;tlRecBtn();
-  if(tl.rec){tl.S=[];tlRecSt();$('tlRes').hidden=true;if(!tl.last)$('tlRecSt').innerHTML='<b>Grabando…</b> aún no llegan datos del juego.'}
+  if(tl.rec){tl.S=[];tl.bad=0;tlRecSt();$('tlRes').hidden=true;if(!tl.last)$('tlRecSt').innerHTML='<b>Grabando…</b> aún no llegan datos del juego.'}
   else{const r=tlAnalyze();if(r)tlSave(r)}
 }
 function tlClear(){tl.rec=false;tl.S=[];tlRecBtn();$('tlRecSt').textContent='Sin grabar.';$('tlRes').hidden=true}
@@ -1181,12 +1188,14 @@ function tlRecs(M,use,goal){
 }
 function tlAnalyze(){
   const S=tl.S;
-  if(S.length<60){$('tlRecSt').innerHTML='Muy pocos datos ('+S.length+' muestras). Conduce al menos unos 30 s antes de detener.';$('tlRes').hidden=true;return null}
+  const duration=S.length>1?Math.max(0,(S[S.length-1].ts-S[0].ts)/1000):0;
+  if(S.length<300||duration<9){$('tlRecSt').innerHTML='Prueba demasiado corta ('+S.length+' muestras, '+duration.toFixed(1)+' s). Conduce al menos 10 s; para recomendaciones fiables intenta superar 30 s.';$('tlRes').hidden=true;return null}
   const use=$('tlUse').value,goal=$('tlGoal').value,M=tlMetrics(S),recs=tlRecs(M,use,goal);
+  M.quality={duration:+duration.toFixed(1),sampleHz:+((S.length-1)/Math.max(duration,0.001)).toFixed(1),gaps:S.slice(1).filter((m,i)=>(m.ts-S[i].ts)>250).length,bad:tl.bad};
   const f=(v,d)=>v===null||v===undefined?'–':(+v).toFixed(d),pc=v=>v===null||v===undefined?'–':Math.round(v*100)+' %';
   const pt=tlTests.filter(t=>t.use===use).slice(-1)[0],pv=pt?pt.M:null;
   const dl=(a,b,d,pcnt)=>pv&&a!==null&&b!==null?' <span class="tl-small">('+(a-b>=0?'+':'')+(pcnt?Math.round((a-b)*100)+' pts':(a-b).toFixed(d))+' vs. '+pt.name+')</span>':'';
-  const rows=[['Muestras de conducción',M.nOk,''],['Muestras en curva',M.nCur,''],
+  const rows=[['Duración de la prueba',M.quality.duration.toFixed(1)+' s',''],['Frecuencia media de muestras',M.quality.sampleHz.toFixed(1)+' Hz',''],['Saltos superiores a 250 ms',M.quality.gaps,''],['Muestras descartadas',M.quality.bad,''],['Muestras de conducción',M.nOk,''],['Muestras en curva',M.nCur,''],
     ['Subviraje (+) / sobreviraje (−), total',f(M.U,2),dl(M.U,pv&&pv.U,2)],['… al entrar (frenando)',f(M.Ue,2),''],['… a mitad de curva',f(M.Um,2),''],['… al salir (acelerando)',f(M.Us,2),''],
     ['Suspensión delantera al tope',pc(M.botF),dl(M.botF,pv&&pv.botF,0,1)],['Suspensión trasera al tope',pc(M.botR),dl(M.botR,pv&&pv.botR,0,1)],
     ['Ruedas motrices patinando a fondo',pc(M.trac),dl(M.trac,pv&&pv.trac,0,1)],['Bloqueo al frenar, del. / tras.',pc(M.lockF)+' / '+pc(M.lockR),''],
@@ -1194,7 +1203,7 @@ function tlAnalyze(){
   $('tlOut').innerHTML='<table class="tl-met">'+rows.map(r=>'<tr><th>'+r[0]+'</th><td class="n">'+r[1]+r[2]+'</td></tr>').join('')+'</table>'+
     '<h3 style="margin-top:16px">Qué tocar</h3><div style="display:grid;gap:10px;margin-top:8px">'+
     (recs.length?recs.map(x=>'<div class="tl-rec '+x.sev+'"><h4>'+x.t+'</h4><p>'+x.w+'</p>'+(x.a.length?'<ul>'+x.a.map(a=>'<li>'+a+'</li>').join('')+'</ul>':'')+'</div>').join(''):'<div class="tl-rec"><h4>Sin problemas detectados</h4><p>Con los umbrales actuales no hay nada que corregir.</p></div>')+
-    '</div><p class="tl-small" style="margin-top:12px">Son indicaciones de dirección, no valores exactos: cambia una cosa a la vez, en pasos pequeños, y repite la prueba. Los umbrales son valores de partida sin calibrar con datos reales.</p>';
+    '</div><p class="tl-small" style="margin-top:12px">'+(M.quality.duration<30||M.quality.gaps>Math.max(2,S.length*0.02)||M.quality.bad?'Calidad limitada: ':'')+'Son indicaciones de dirección, no valores exactos: cambia una cosa a la vez, en pasos pequeños, y repite la prueba. Los umbrales son valores de partida sin calibrar con datos reales. '+(M.quality.duration<30?'La prueba duró menos de 30 s; toma estas recomendaciones como preliminares. ':'')+(M.quality.gaps>Math.max(2,S.length*0.02)?'Se detectaron saltos de recepción; revisa la conexión. ':'')+(M.quality.bad?'Se descartaron '+M.quality.bad+' muestras incompletas.':'')+'</p>';
   $('tlRes').hidden=false;
   return{M:M,recs:recs,use:use,goal:goal};
 }
@@ -1344,6 +1353,7 @@ function tlCompare(){
   tl.win=w;
   ver=w?'<b>Gana «'+tlEsc(w.name)+'»</b>: '+why+'.':'<b>Empate técnico</b>: no hay diferencias claras entre las dos pruebas.';
   const warn=[];
+  [A,B].forEach(t=>{const q=t.M.quality;if(q&&(q.duration<30||q.gaps>Math.max(2,(t.M.n||0)*0.02)||q.bad))warn.push('la prueba «'+t.name+'» tiene calidad de datos limitada')});
   if(A.car.ord&&B.car.ord&&A.car.ord!==B.car.ord)warn.push('son coches distintos');
   else if(A.car.pi&&B.car.pi&&A.car.pi!==B.car.pi)warn.push('el PI es distinto ('+A.car.pi+' y '+B.car.pi+'), así que hay piezas cambiadas');
   if(A.use!==B.use)warn.push('el tipo de reglaje es distinto');

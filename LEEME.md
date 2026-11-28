@@ -62,4 +62,4 @@ La pestaña «Telemetría» lee los datos en vivo del juego (Data Out) mediante 
 Nota: la Calculadora y la Telemetría no llevan subpestañas; solo «Coche» tiene Specs y piezas / Recomendaciones. El diagnóstico por síntomas está al pie de la Calculadora y los perfiles al pie de la Telemetría.
 
 ## HUD
-``huds.html` (selector) abre cuatro tableros aparte: `hud.html`, `hud2.html`, `hud3.html` y `hud4.html`,  con aviso de cambio en rojo que aprende la curva de potencia del coche. Ver `herramientas/TELEMETRIA.md`.
+`huds.html` (selector) abre cuatro tableros aparte: `hud.html`, `hud2.html`, `hud3.html` y `hud4.html`. Comparten el núcleo `js/hudcore.js`, que aprende la curva de potencia y las relaciones por marcha, muestra pre-aviso amarillo y aviso rojo, y detecta patinaje/bloqueo observados (no el estado de las ayudas del juego). Ver `herramientas/TELEMETRIA.md`.

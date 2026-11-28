@@ -29,7 +29,7 @@ Si aparece un aviso de que los datos no cuadran: ejecuta
 ## HUD aparte (hud.html)
 Tablero estilo SimHub que usa el mismo receptor. Se abre desde la pestaña Telemetría («Abrir el HUD en una ventana aparte») o directamente en `hud.html`.
 - **Muestra:** barra de revoluciones con zona de corte, velocidad, marcha, acelerador, freno, volante, agarre de cada rueda, posición, tiempo de vuelta, última y mejor vuelta, número de vuelta, velocidad máxima, potencia y par.
-- **Aviso de cambio (adaptativo):** el HUD ya no usa solo un porcentaje fijo. Mientras conduces aprende, por coche, la curva de potencia (acelerador a fondo, sin frenar y sin derrapar) y la relación de cada marcha. Con eso calcula la rpm a la que conviene cambiar: el punto donde, al subir de marcha, la potencia que tendrás ya no es menor que la que dejas. Sale en la barra como una línea blanca y en el diagnóstico. El HUD se pone rojo con antelación: calcula hacia dónde van las rpm y avisa «Adelantar el aviso» milisegundos antes (280 por defecto). Con «Auto» activado, mide cuánto tardas en cambiar tras el aviso y ajusta ese margen solo. También avisa si las rpm llegan al tope (98 %). Hasta que haya datos de al menos dos marchas usa el porcentaje fijo (92 % por defecto).
+- **Aviso de cambio (adaptativo):** el HUD ya no usa solo un porcentaje fijo. Mientras conduces aprende, por coche, la curva de potencia (acelerador a fondo, sin frenar y sin derrapar) y la relación de cada marcha. Con eso calcula la rpm a la que conviene cambiar: el punto donde, al subir de marcha, la potencia que tendrás ya no es menor que la que dejas. Sale en la barra como una línea blanca y en el diagnóstico. El HUD se pone rojo con antelación: calcula hacia dónde van las rpm y avisa «Adelantar el aviso» milisegundos antes (300 por defecto). Con «Auto» activado, mide cuánto tardas en cambiar tras el aviso y ajusta ese margen solo. También avisa si las rpm llegan al tope (98 %). Hasta que haya datos de al menos dos marchas usa el porcentaje fijo (92 % por defecto).
 - **Para que aprenda:** haz 2 o 3 aceleraciones a fondo por las marchas, en recta. Se guarda en el navegador. «Olvidar la curva» la borra (hazlo si cambias las piezas del coche).
 - **Diagnóstico:** en Ajustes › «Diagnóstico de datos» ves los valores crudos que llegan (rpm, marcha, acelerador, potencia…), el modo de aviso, las relaciones aprendidas y la curva de potencia.
 - **Controles:** km/h o mph, tecla H para ocultar la barra, fondo transparente para usarlo como «Fuente de navegador» en OBS. Clic en «Vel. máx» para reiniciarla.
@@ -42,7 +42,7 @@ Tablero circular inspirado en un cuadro de instrumentos deportivo: cuentarrevolu
 `python receptor-telemetria.py --registro carrera.csv` guarda ~30 filas por segundo (tiempo, velocidad, rpm, marcha, acelerador, freno, potencia, par, boost). Si el aviso sigue sin coincidir con lo que sientes, envíame ese CSV tras una carrera.
 
 ## HUD 3 (hud3.html) y selector (huds.html)
-`huds.html` es una página para elegir entre los tres HUD con una vista previa de cada uno; se abre desde la pestaña Telemetría. El HUD 3 se basa en un cuadro de dos relojes: tacómetro a la izquierda (con mini indicador de boost y barra de par), velocímetro a la derecha (con barra de potencia), marcha y velocidad digital al centro, y arriba posición, vuelta, velocidad máxima y tiempo de vuelta, con mejor y última vuelta abajo. Se quitaron las cosas que el juego no envía o no hacen falta: combustible (ilimitado), temperatura del agua y diferencia con el rival (gap).
+`huds.html` es una página para elegir entre los cuatro HUD con una vista previa de cada uno; se abre desde la pestaña Telemetría. El HUD 3 se basa en un cuadro de dos relojes: tacómetro a la izquierda (con mini indicador de boost y barra de par), velocímetro a la derecha (con barra de potencia), marcha y velocidad digital al centro, y arriba posición, vuelta, velocidad máxima y tiempo de vuelta, con mejor y última vuelta abajo. Se quitaron las cosas que el juego no envía o no hacen falta: combustible (ilimitado), temperatura del agua y diferencia con el rival (gap).
 
 ## HUD 4 (hud4.html)
 Cuadro deportivo: tacómetro abierto con la marcha enorme en el centro, velocidad a la izquierda, pantalla a la derecha (vuelta, posición, tiempo actual, mejor, última, hp, N·m y velocidad máxima) y barras de acelerador (izquierda) y freno (derecha). Sin combustible, temperaturas ni nada que el juego no envíe.
@@ -51,10 +51,16 @@ Cuadro deportivo: tacómetro abierto con la marcha enorme en el centro, velocida
 La telemetría de Forza **no** informa si el ABS, el control de tracción o el launch control están activados. Lo que sí llega es el deslizamiento de cada rueda, así que los HUD muestran, abajo a la derecha, «PATINAJE» (ruedas girando de más con el acelerador pisado) y «BLOQUEO» (ruedas bloqueándose al frenar). Es lo que ocurre en el coche, no el estado de las ayudas.
 
 ## Ajuste del aviso de cambio
-«Adelantar (+) o retrasar (−) el aviso» va de −300 a +600 ms. Por defecto ahora es 100 ms y «Auto» viene apagado. Si el rojo te sale demasiado pronto, baja el valor (los negativos hacen que se encienda después del punto de cambio calculado).
+«Adelantar (+) o retrasar (−) el aviso» va de −300 a +600 ms. Por defecto es 300 ms y «Auto» viene apagado. Si el rojo te sale demasiado pronto, baja el valor (los negativos hacen que se encienda después del punto de cambio calculado).
 
 ## Aviso largo y temprano
 El aviso rojo se enciende al detectar que ya conviene cambiar (por defecto 300 ms antes del punto óptimo calculado) y **se mantiene** el tiempo de «Mantener el aviso» (1200 ms por defecto, hasta 3 s). Se apaga antes si ya cambiaste de marcha o frenas fuerte. Ajusta los dos controles en Ajustes.
 
 ## Pre-aviso amarillo (todos los HUD)
 Antes del rojo hay una fase amarilla: cuando las rpm llegan a «Pre-aviso amarillo» (800 por defecto) antes del punto ámbar, todo el HUD pasa a amarillo chillón y aparece una marca amarilla en el tacómetro. Al llegar al punto de cambio pasa al rojo. Solo se activa con el acelerador pisado y sin frenar.
+
+## Calidad de las pruebas (versión 2.0, primera fase)
+- La grabación descarta muestras incompletas o con campos numéricos no válidos antes de analizarlas.
+- Para generar un análisis se requieren al menos 300 muestras y 9 segundos de tiempo medido (aproximadamente 10 s). Para recomendaciones más fiables, intenta grabar 30 segundos o más.
+- El informe muestra duración, frecuencia media, saltos de recepción superiores a 250 ms y muestras descartadas. Si la prueba es corta o hay saltos, las recomendaciones se marcan como preliminares.
+- Los cuatro HUD comparten el mismo núcleo. El aprendizaje de relaciones evita muestras a muy baja velocidad o cerca del corte; la curva de potencia se suaviza para reducir picos aislados y el pre-aviso amarillo usa una histéresis de 120 rpm para evitar parpadeos.

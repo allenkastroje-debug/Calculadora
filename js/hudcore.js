@@ -19,15 +19,21 @@ H.onStatus=function(f){H.status.push(f)};
 function carData(ord){if(!curves[ord])curves[ord]={pw:{},r:{}};return curves[ord]}
 function maxAbs(a){var m=0;for(var i=0;i<a.length;i++){var v=Math.abs(a[i]);if(v>m)m=v}return m}
 function learn(m){
-  if(!m.on||!(m.ord>0))return;
+  if(!m.on||!(m.ord>0)||!Number.isFinite(m.rpm)||!Number.isFinite(m.spd)||m.spd<=0)return;
   var d=carData(m.ord);cur=d;H.ord=m.ord;
-  var calm=m.brk<5&&m.spd>3&&m.gear>0&&maxAbs(m.sr||[0])<0.6;
+  /* No aprender relaciones en parado, a muy baja velocidad ni cerca del corte. */
+  var calm=m.brk<5&&m.spd>8&&m.gear>0&&m.rpm>(m.rpmIdle||0)*1.2&&
+    (!m.rpmMax||m.rpm<m.rpmMax*0.985)&&maxAbs(m.sr||[0])<0.6;
   if(calm){
-    var r=m.rpm/m.spd,arr=d.r[m.gear]||(d.r[m.gear]=[]);
-    arr.push(+r.toFixed(2));if(arr.length>60)arr.shift();dirty=true;
-    if(m.gas>=230&&m.pow>0&&m.rpm>(m.rpmIdle||0)*1.2){
+    var r=m.rpm/m.spd;
+    if(Number.isFinite(r)&&r>5&&r<1000){
+      var arr=d.r[m.gear]||(d.r[m.gear]=[]);
+      arr.push(+r.toFixed(2));if(arr.length>60)arr.shift();dirty=true;
+    }
+    /* La curva solo aprende con gas casi a fondo, sin frenar ni patinar. */
+    if(m.gas>=230&&m.pow>0&&m.rpm>(m.rpmIdle||0)*1.2&&(!m.rpmMax||m.rpm<m.rpmMax*0.99)){
       var b=Math.floor(m.rpm/BIN),e=d.pw[b]||(d.pw[b]=[0,0]);
-      e[0]+=m.pow;e[1]+=1;if(e[1]>200){e[0]*=0.9;e[1]*=0.9}
+      e[0]+=m.pow;e[1]+=1;if(e[1]>200){e[0]*=0.9;e[1]*=0.9}dirty=true;
     }
   }
   if(m.gas>200&&m.pow>H.peak.pow){H.peak.pow=m.pow;H.peak.rpm=m.rpm}
@@ -43,8 +49,15 @@ function med(d,g){
   return v;
 }
 function binAvg(d,i){var e=d.pw[i];return e&&e[1]>=3?e[0]/e[1]:null}
+/* Suavizado triangular de tres bins para que una muestra ruidosa no mueva el cambio. */
+function smoothBinAvg(d,i){
+  var c=binAvg(d,i);if(c===null)return null;
+  var l=binAvg(d,i-1),r=binAvg(d,i+1),sum=c*2,w=2;
+  if(l!==null){sum+=l;w++}if(r!==null){sum+=r;w++}
+  return sum/w;
+}
 function pAt(d,rpm){
-  var b=rpm/BIN-0.5,i=Math.floor(b),t=b-i,a=binAvg(d,i),c=binAvg(d,i+1);
+  var b=rpm/BIN-0.5,i=Math.floor(b),t=b-i,a=smoothBinAvg(d,i),c=smoothBinAvg(d,i+1);
   if(a===null&&c===null)return null;if(a===null)return c;if(c===null)return a;
   return a*(1-t)+c*t;
 }
@@ -58,13 +71,13 @@ H.ratios=function(){
   Object.keys(cur.r).forEach(function(g){var v=med(cur,+g);if(v)o[g]=+v.toFixed(1)});
   return o;
 };
-H.resetCurve=function(){if(H.ord){delete curves[H.ord];cur=null;medCache={};store.set('bdr-hud-curves',curves)}};
+H.resetCurve=function(){if(H.ord){delete curves[H.ord];cur=null;medCache={};H.rate=0;H.rpmShift=null;H.setWarn(false);H.setShift(false);store.set('bdr-hud-curves',curves)}};
 setInterval(function(){if(!dirty)return;dirty=false;
   try{store.set('bdr-hud-curves',curves)}catch(e){}},5000);
 setInterval(function(){medCache={};medAt=performance.now()},1000);
 
 /* ---------- decisión de cambio ---------- */
-function peakRpmCurve(d){var best=0,rp=0;Object.keys(d.pw).forEach(function(k){var v=binAvg(d,+k);if(v!==null&&v>best){best=v;rp=(+k+0.5)*BIN}});return rp}
+function peakRpmCurve(d){var best=0,rp=0;Object.keys(d.pw).forEach(function(k){var v=smoothBinAvg(d,+k);if(v!==null&&v>best){best=v;rp=(+k+0.5)*BIN}});return rp}
 function decide(m){
   var mx=m.rpmMax>0?m.rpmMax:8000,g=m.gear,rs=null,mode='fijo';
   if(cur&&g>0){
@@ -111,6 +124,13 @@ function aidsUI(){
 /* ---------- conexión ---------- */
 var ws=null,retry=null,want=true;
 function status(t,ok){H.status.forEach(function(f){f(t,ok)})}
+function validSample(m){
+  var keys=['on','ts','rpm','rpmMax','rpmIdle','spd','pow','tor','boost','gas','brk','gear','str','ord'];
+  for(var i=0;i<keys.length;i++)if(!Number.isFinite(m[keys[i]]))return false;
+  var arrays=['sr','cs','nt','tmp'];
+  for(var j=0;j<arrays.length;j++){var a=m[arrays[j]];if(!Array.isArray(a)||a.length!==4||!a.every(Number.isFinite))return false}
+  return true;
+}
 H.connect=function(){
   if(ws){want=false;try{ws.close()}catch(e){}ws=null}
   want=true;clearTimeout(retry);
@@ -120,8 +140,10 @@ H.connect=function(){
   w.onmessage=function(ev){
     var m;try{m=JSON.parse(ev.data)}catch(x){return}
     if(m.t!=='s')return;
+    if(!validSample(m)){status('Datos incompletos o no válidos · muestra descartada',false);return}
     var nowp=performance.now();
-    if(H.prev&&m.on){var dtp=(nowp-H.prev.at)/1000;if(dtp>0.005&&dtp<0.5){H.rate=0.7*H.rate+0.3*((m.rpm-H.prev.rpm)/dtp)}}
+    if(H.prev&&m.on&&m.gear===H.prev.gear&&m.gear>0){var dtp=(nowp-H.prev.at)/1000;if(dtp>0.005&&dtp<0.5){var rawRate=(m.rpm-H.prev.rpm)/dtp;if(Number.isFinite(rawRate)&&Math.abs(rawRate)<20000)H.rate=0.7*H.rate+0.3*rawRate}}
+    else if(H.prev&&m.gear!==H.prev.gear){H.rate=0}
     if(H.prev&&m.on&&m.gear>H.prev.gear&&H.prev.gear>0&&H.tFire&&S.auto){
       var gap=nowp-H.tFire;if(gap>80&&gap<1500){S.lead=Math.round(Math.max(-300,Math.min(600,0.85*S.lead+0.15*gap)));H.saveS();H.leadSet&&H.leadSet(S.lead)}H.tFire=0}
     H.prev={at:nowp,rpm:m.rpm,gear:m.gear};
@@ -134,7 +156,10 @@ H.connect=function(){
       var v=m.spd*(S.u==='mph'?2.23694:3.6);if(v>H.maxSpd)H.maxSpd=v;
       H.setShift(decide(m)||performance.now()<H.force);
       H.warnRpm=(H.rpmShift||0)-(S.pre||0);
-      H.setWarn(!H.shift&&m.gas>=100&&m.brk<40&&m.gear>0&&m.rpm>=H.warnRpm);
+      var warnEligible=!H.shift&&m.gas>=100&&m.brk<40&&m.gear>0&&H.rpmShift>0;
+      /* Histéresis de 120 rpm: evita parpadeos si las rpm oscilan en el umbral amarillo. */
+      var warnOffAt=H.warnRpm-120;
+      H.setWarn(warnEligible&&(H.warn?m.rpm>=warnOffAt:m.rpm>=H.warnRpm));
     }else{H.setShift(performance.now()<H.force);H.setWarn(false)}
     H.frame.forEach(function(f){f(m)});
   };
