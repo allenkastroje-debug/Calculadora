@@ -1107,10 +1107,23 @@ function tlClear(){tl.rec=false;tl.S=[];tlRecBtn();$('tlRecSt').textContent='Sin
 
 /* ---------- Análisis ---------- */
 function tlLaps(S){
-  const L=[];if(!S.length)return L;let prev=S[0],first=true;const firstOk=S[0].cur<4;
-  for(let i=1;i<S.length;i++){const m=S[i];
-    if(m.lap!==prev.lap){if(m.lap>prev.lap&&m.last>0&&(!first||firstOk))L.push(+m.last.toFixed(2));first=false}
-    prev=m}
+  const L=[];if(!S.length)return L;
+  let prev=S[0],lastMarkTs=-Infinity;
+  for(let i=1;i<S.length;i++){
+    const m=S[i],lapChanged=Number.isFinite(+m.lap)&&Number.isFinite(+prev.lap)&&m.lap!==prev.lap;
+    const timerReset=Number.isFinite(+m.cur)&&Number.isFinite(+prev.cur)&&prev.cur>15&&m.cur<Math.max(5,prev.cur*0.35);
+    // FH puede actualizar el contador y el cronómetro en paquetes distintos: ambos
+    // indicadores cuentan como un único cruce. No descartamos la primera vuelta
+    // completada solo porque la grabación empezara después de la salida.
+    if((lapChanged||timerReset)&&m.ts-lastMarkTs>5000){
+      const official=Number.isFinite(+m.last)&&m.last>10?+m.last:0;
+      const elapsed=Number.isFinite(+prev.cur)&&prev.cur>10?+prev.cur:0;
+      const lapTime=official||elapsed;
+      if(lapTime>10&&lapTime<900)L.push(+lapTime.toFixed(2));
+      lastMarkTs=m.ts;
+    }
+    prev=m;
+  }
   return L;
 }
 function tlT0100(S){
@@ -1216,7 +1229,7 @@ function tlPersist(){try{localStorage.setItem(TL_KEY,JSON.stringify(tlTests));re
 function tlTrace(S){
   const st=Math.max(1,Math.ceil(S.length/1500)),o=[],r=(x,d)=>+x.toFixed(d);
   for(let i=0;i<S.length;i+=st){const m=S[i];
-    o.push([r(m.spd,1),m.gas,m.brk,m.str,r(m.ax,1),r((Math.abs(m.sa[0])+Math.abs(m.sa[1]))/2,2),r((Math.abs(m.sa[2])+Math.abs(m.sa[3]))/2,2),r(Math.max(m.nt[0],m.nt[1]),2),r(Math.max(m.nt[2],m.nt[3]),2),m.gear])}
+    o.push([r(m.spd,1),m.gas,m.brk,m.str,r(m.ax,1),r((Math.abs(m.sa[0])+Math.abs(m.sa[1]))/2,2),r((Math.abs(m.sa[2])+Math.abs(m.sa[3]))/2,2),r(Math.max(m.nt[0],m.nt[1]),2),r(Math.max(m.nt[2],m.nt[3]),2),m.gear,m.lap,r(m.cur||0,2),r(m.last||0,2)])}
   return o;
 }
 function tlScore(t){
@@ -1269,7 +1282,7 @@ function tlTuneInit(){
 function tlSave(r){
   const l=tl.last||{},name=($('tlName').value.trim()||('Prueba '+tlNum())).slice(0,40);
   const t={id:Date.now(),name:name,date:new Date().toISOString(),use:r.use,goal:r.goal,tune:tlTuneRead(),ctx:tlCtx(),car:{ord:l.ord,pi:l.pi,cls:l.cls,dt:l.dt},notes:$('tlNotes').value.trim(),
-    M:r.M,recs:r.recs.map(x=>({sev:x.sev,t:x.t})),trCols:['vel_ms','acel','freno','volante','acel_lateral','deslizDel','deslizTras','recorridoDel','recorridoTras','marcha'],tr:tlTrace(tl.S)};
+    M:r.M,recs:r.recs.map(x=>({sev:x.sev,t:x.t})),trCols:['vel_ms','acel','freno','volante','acel_lateral','deslizDel','deslizTras','recorridoDel','recorridoTras','marcha','vuelta','tiempoVuelta','ultimaVuelta'],tr:tlTrace(tl.S)};
   tlTests.push(t);
   const ok=tlPersist();
   $('tlName').value='';tlRecBtn();
