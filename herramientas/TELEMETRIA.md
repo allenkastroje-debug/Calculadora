@@ -43,3 +43,15 @@ Tablero circular inspirado en un cuadro de instrumentos deportivo: cuentarrevolu
 
 ## HUD 3 (hud3.html) y selector (huds.html)
 `huds.html` es una página para elegir entre los tres HUD con una vista previa de cada uno; se abre desde la pestaña Telemetría. El HUD 3 se basa en un cuadro de dos relojes: tacómetro a la izquierda (con mini indicador de boost y barra de par), velocímetro a la derecha (con barra de potencia), marcha y velocidad digital al centro, y arriba posición, vuelta, velocidad máxima y tiempo de vuelta, con mejor y última vuelta abajo. Se quitaron las cosas que el juego no envía o no hacen falta: combustible (ilimitado), temperatura del agua y diferencia con el rival (gap).
+
+## HUD 4 (hud4.html)
+Cuadro deportivo: tacómetro abierto con la marcha enorme en el centro, velocidad a la izquierda, pantalla a la derecha (vuelta, posición, tiempo actual, mejor, última, hp, N·m y velocidad máxima) y barras de acelerador (izquierda) y freno (derecha). Sin combustible, temperaturas ni nada que el juego no envíe.
+
+## Avisos de patinaje y bloqueo (todos los HUD)
+La telemetría de Forza **no** informa si el ABS, el control de tracción o el launch control están activados. Lo que sí llega es el deslizamiento de cada rueda, así que los HUD muestran, abajo a la derecha, «PATINAJE» (ruedas girando de más con el acelerador pisado) y «BLOQUEO» (ruedas bloqueándose al frenar). Es lo que ocurre en el coche, no el estado de las ayudas.
+
+## Ajuste del aviso de cambio
+«Adelantar (+) o retrasar (−) el aviso» va de −300 a +600 ms. Por defecto ahora es 100 ms y «Auto» viene apagado. Si el rojo te sale demasiado pronto, baja el valor (los negativos hacen que se encienda después del punto de cambio calculado).
+
+## Aviso largo y temprano
+El aviso rojo se enciende al detectar que ya conviene cambiar (por defecto 300 ms antes del punto óptimo calculado) y **se mantiene** el tiempo de «Mantener el aviso» (1200 ms por defecto, hasta 3 s). Se apaga antes si ya cambiaste de marcha o frenas fuerte. Ajusta los dos controles en Ajustes.

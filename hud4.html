@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>HUD 4 · Banco de Reglajes</title>
+<link rel="icon" href="icons/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=Saira+Condensed:wght@500;600;700&display=swap">
+<style>
+:root{--bg:#0b0d10;--surface:#14181d;--line:#262d36;--line2:#3a4452;--ink:#eef2f6;--muted:#8d98a5;--accent:#C6F432;--accent-ink:#10140a;--red:#FF3B30;--amber:#FFB020;
+ --display:"Saira Condensed","Arial Narrow",Impact,sans-serif;--body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;--mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{background:var(--bg);color:var(--ink);font:14px/1.4 var(--body);display:flex;flex-direction:column;min-height:100vh;overflow:hidden;transition:background .08s}
+body.transp{background:transparent}
+body.shift{--accent:var(--red);background:#2b0707}
+body.shift.transp{background:rgba(120,10,10,.55)}
+button,input{font:inherit;color:inherit}
+button{background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:6px 12px;cursor:pointer}
+button:hover{border-color:var(--muted)}
+button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-weight:700}
+button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+input[type=text]{background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:6px 8px;width:100%}
+input[type=range]{accent-color:var(--accent);width:180px}
+.bar{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;padding:8px 16px;border-bottom:1px solid var(--line);background:var(--bg)}
+.bar.off{display:none}
+.grp{display:flex;gap:6px;align-items:center}
+.dot{width:10px;height:10px;border-radius:50%;background:var(--red);flex:none}
+.dot.ok{background:#C6F432}
+.st{color:var(--muted);font-size:13px}
+a.st{color:var(--muted)}
+.set{display:none;padding:10px 16px;border-bottom:1px solid var(--line);gap:10px 18px;flex-wrap:wrap;align-items:end;background:var(--bg)}
+.set.on{display:flex}
+.set label{display:grid;gap:4px;font-size:12px;color:var(--muted);min-width:200px}
+.set .row{display:flex;gap:10px;align-items:center}
+#fit{flex:1;position:relative;overflow:hidden}
+#hud{position:absolute;left:0;top:0;width:880px;height:560px;transform-origin:0 0;font-family:var(--display);font-variant-numeric:tabular-nums}
+#hud{width:1130px;height:520px}
+svg text{font-family:var(--display);fill:var(--ink)}
+.mut{fill:var(--muted)!important}
+#hud>*{position:absolute}
+.lbl{margin:0;font-weight:500;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;font-size:14px}
+#spdBox{left:108px;top:200px;width:170px}
+#spdV{font-size:92px;line-height:.9;font-weight:700}
+#spdU{font-size:20px;color:var(--muted);letter-spacing:.1em}
+#scr{left:790px;top:110px;width:250px;height:300px;background:#0e1115;border:1px solid var(--line2);border-radius:10px;padding:12px 14px;display:grid;grid-template-rows:auto auto auto 1fr;gap:6px}
+#scr .r{display:flex;justify-content:space-between;align-items:baseline;border-bottom:1px solid var(--line);padding-bottom:4px}
+#scr b{font-size:26px;font-weight:600}#scr .big b{font-size:44px}
+#scr .g{display:grid;grid-template-columns:1fr 1fr 1.3fr;text-align:center;align-self:end}
+#scr .g b{display:block;font-size:26px}#scr .g .lbl{font-size:12px;white-space:nowrap}
+.bars{width:70px;height:200px;display:flex;flex-direction:column-reverse;gap:6px}
+.bars i{display:block;height:100%;flex:1;background:#1b2128;border-radius:2px}
+.bars i.on{background:var(--accent)}#bB i.on{background:var(--red)}
+#bL{left:20px;top:240px}
+</style>
+</head>
+<body>
+<div class="bar" id="bar">
+  <span class="dot" id="dot"></span><span class="st" id="st">Conectando…</span>
+  <div class="grp" role="group" aria-label="Unidades"><button type="button" data-u="kmh">km/h</button><button type="button" data-u="mph">mph</button></div>
+  <button type="button" id="bSet" aria-expanded="false">Ajustes</button>
+  <a class="st" href="huds.html">Cambiar de HUD ↗</a>
+  <button type="button" id="bHide" title="Atajo: tecla H">Ocultar barra</button>
+</div>
+<div class="set" id="set">
+  <label>Dirección del receptor<input type="text" id="url" spellcheck="false"></label>
+  <label>Aviso sin curva aprendida: <b id="shV">92</b> % de las rpm máximas
+    <span class="row"><input type="range" id="sh" min="70" max="100" value="92"><button type="button" id="shTest">Probar aviso</button></span></label>
+  <label>Adelantar (+) o retrasar (−) el inicio del aviso: <b id="ldV">100</b> ms
+    <span class="row"><input type="range" id="ld" min="-300" max="600" step="10" value="100"><label style="display:flex;min-width:0;gap:4px;align-items:center"><input type="checkbox" id="auto"> Auto</label></span></label>
+  <label>Mantener el aviso: <b id="hdV">1200</b> ms
+    <span class="row"><input type="range" id="hd" min="0" max="3000" step="100" value="1200"></span></label>
+  <label><span class="row"><input type="checkbox" id="transp"> Fondo transparente (OBS)</span></label>
+  <details id="diag" style="flex-basis:100%"><summary class="st" style="cursor:pointer">Diagnóstico de datos</summary>
+    <pre id="dg" style="margin:8px 0 0;font:12px/1.5 var(--mono);color:var(--muted)"></pre>
+    <button type="button" id="rsC">Olvidar la curva de este coche</button></details>
+</div>
+<div id="fit"><div id="hud">
+  <svg id="sv" width="1130" height="520" viewBox="0 0 1130 520" style="position:absolute;left:0;top:0"><g id="gT"></g></svg>
+  <div id="spdBox"><p class="lbl">Velocidad</p><div id="spdV">0</div><div id="spdU">KM/H</div></div>
+  <div class="bars" id="bL" title="Acelerador"></div>
+  <div class="bars" id="bB" style="left:1060px;top:240px" title="Freno"></div>
+  <div id="scr">
+    <div class="r big"><span class="lbl">Vuelta <span id="lap">–</span> · Pos. <span id="pos">–</span></span><b id="cur">–</b></div>
+    <div class="r"><span class="lbl">Mejor</span><b id="best">–</b></div>
+    <div class="r"><span class="lbl">Última</span><b id="last">–</b></div>
+    <div class="g"><div><p class="lbl">hp</p><b id="hp">–</b></div><div><p class="lbl">N·m</p><b id="tq">–</b></div><div><p class="lbl">Máx <span id="mxU">km/h</span></p><b id="mx" style="cursor:pointer" title="Clic para reiniciar">0</b></div></div>
+  </div>
+</div>
+<div id="nodata" style="display:none;position:absolute;inset:0;place-items:center;pointer-events:none"><div style="background:var(--surface);border:1px solid var(--line2);padding:10px 18px;border-radius:8px;color:var(--muted)">Sin datos del juego</div></div>
+</div>
+<style>#nodata.on{display:grid!important}</style>
+<script src="js/hudcore.js"></script>
+<script>
+(function(){
+'use strict';
+const $=id=>document.getElementById(id),H=window.HUD,S=H.S,NS='http://www.w3.org/2000/svg';
+function fit(){const f=$('fit'),w=f.clientWidth,h=f.clientHeight,k=Math.min(w/1130,h/520),hud=$('hud');hud.style.transform='scale('+k+')';hud.style.left=((w-1130*k)/2)+'px';hud.style.top=((h-520*k)/2)+'px'}
+window.addEventListener('resize',fit);
+function el(p,t,a,txt){const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);if(txt!=null)e.textContent=txt;p.appendChild(e);return e}
+const rad=d=>d*Math.PI/180,pt=(cx,cy,r,d)=>[cx+r*Math.cos(rad(d)),cy+r*Math.sin(rad(d))];
+function arc(cx,cy,r,a0,a1){const p0=pt(cx,cy,r,a0),p1=pt(cx,cy,r,a1);return'M'+p0[0].toFixed(1)+','+p0[1].toFixed(1)+'A'+r+','+r+' 0 '+((a1-a0)>180?1:0)+' 1 '+p1[0].toFixed(1)+','+p1[1].toFixed(1)}
+const A0=90,SP=255,CX=508,CY=272,R=190;
+for(const id of ['bL','bB'])for(let i=0;i<10;i++)$(id).appendChild(document.createElement('i'));
+function bars(id,v){const c=$(id).children,n=Math.round(v*10);for(let i=0;i<10;i++)c[i].className=i<n?'on':''}
+let tMax=0,fillA,shM,gearT,rpmT,glow;
+function build(mx){
+  tMax=mx;const g=$('gT');g.innerHTML='';
+  el(g,'circle',{cx:CX,cy:CY,r:R-62,fill:'#0c0f12',stroke:'var(--line)','stroke-width':2});
+  el(g,'path',{d:arc(CX,CY,R-14,A0,A0+SP),fill:'none',stroke:'#1b2128','stroke-width':26});
+  el(g,'path',{d:arc(CX,CY,R-14,A0+SP*0.875,A0+SP),fill:'none',stroke:'#4a1713','stroke-width':26});
+  fillA=el(g,'path',{d:'',fill:'none',stroke:'var(--accent)','stroke-width':26});
+  const n=mx/500;
+  for(let i=0;i<=n;i++){const maj=i%2===0,a=A0+SP*i/n,red=i/n>=0.875,p0=pt(CX,CY,R+2,a),p1=pt(CX,CY,R+(maj?16:9),a);
+    el(g,'line',{x1:p0[0],y1:p0[1],x2:p1[0],y2:p1[1],stroke:red?'var(--red)':'var(--ink)','stroke-width':maj?3:1.5});
+    if(maj){const q=pt(CX,CY,R+34,a);el(g,'text',{x:q[0],y:q[1]+11,'text-anchor':'middle','font-size':32,'font-weight':700,fill:red?'var(--red)':'var(--ink)'},String(i/2))}}
+  shM=el(g,'path',{d:'',fill:'none',stroke:'var(--amber)','stroke-width':26});
+  gearT=el(g,'text',{x:CX,y:CY+48,'text-anchor':'middle','font-size':180,'font-weight':700,style:'fill:var(--accent)'},'–');
+  el(g,'text',{x:CX,y:CY+96,'text-anchor':'middle','font-size':16,class:'mut','letter-spacing':'3'},'RPM');
+  rpmT=el(g,'text',{x:CX,y:CY+128,'text-anchor':'middle','font-size':34,'font-weight':600},'0')}
+const fmtT=t=>{if(!(t>0))return '–';const m=Math.floor(t/60),s=t-m*60;return m+':'+(s<10?'0':'')+s.toFixed(3)};
+H.onFrame(function(m){
+  if(!m.on)return;
+  const mx=Math.ceil((m.rpmMax>0?m.rpmMax:8000)/1000)*1000;if(mx!==tMax)build(mx);
+  const f=Math.max(0,Math.min(1,m.rpm/mx)),ang=A0+SP*f;
+  fillA.setAttribute('d',f>0.002?arc(CX,CY,R-14,A0,ang):'');
+  if(H.rpmShift){const a=A0+SP*Math.min(1,H.rpmShift/mx);shM.setAttribute('d',arc(CX,CY,R-14,a-1,a+1))}
+  gearT.textContent=m.gear===0?'R':(m.gear||'–');rpmT.textContent=Math.round(m.rpm);
+  const k=S.u==='mph'?2.23694:3.6;
+  $('spdV').textContent=Math.round(m.spd*k);$('spdU').textContent=S.u==='mph'?'MPH':'KM/H';$('mx').textContent=Math.round(H.maxSpd);$('mxU').textContent=S.u==='mph'?'mph':'km/h';
+  bars('bL',m.gas/255);bars('bB',m.brk/255);
+  $('lap').textContent=m.lap!=null?m.lap:'–';$('pos').textContent=m.rp>0?m.rp:'–';
+  $('cur').textContent=fmtT(m.cur);$('last').textContent=fmtT(m.last);$('best').textContent=fmtT(m.best);
+  $('hp').textContent=m.pow>0?Math.round(m.pow/745.7):'–';$('tq').textContent=m.tor>0?Math.round(m.tor):'–';
+  if($('diag').open)diag(m);
+});
+function diag(m){const r=H.ratios();$('dg').textContent=
+  'rpm '+Math.round(m.rpm)+' / máx '+Math.round(m.rpmMax)+'   marcha '+m.gear+'   vel '+m.spd.toFixed(1)+' m/s\n'+
+  'acel '+m.gas+'  freno '+m.brk+'  potencia '+Math.round(m.pow/745.7)+' hp  par '+Math.round(m.tor)+' N·m  boost '+m.boost+'\n'+
+  'aviso: '+(H.mode==='curva'?'por curva de potencia':'por porcentaje fijo')+' · cambio a '+Math.round(H.rpmShift||0)+' rpm · puntos de curva '+H.curve().length+'\n'+
+  'relaciones: '+(Object.keys(r).map(g=>g+'ª '+r[g]).join(' · ')||'aprendiendo…')}
+$('diag').addEventListener('toggle',()=>{if(H.last)diag(H.last)});
+$('rsC').addEventListener('click',()=>{if(confirm('¿Olvidar la curva aprendida de este coche?'))H.resetCurve()});
+function applyUI(){
+  document.querySelectorAll('[data-u]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.u===S.u)));
+  $('url').value=S.url;$('transp').checked=S.transp;document.body.classList.toggle('transp',S.transp);
+  $('sh').value=S.sh;$('shV').textContent=S.sh;$('ld').value=S.lead;$('ldV').textContent=S.lead;$('auto').checked=!!S.auto;$('hd').value=S.hold;$('hdV').textContent=S.hold;H.saveS();fit()}
+document.querySelectorAll('[data-u]').forEach(b=>b.addEventListener('click',()=>{S.u=b.dataset.u;H.maxSpd=0;applyUI()}));
+$('bSet').addEventListener('click',()=>{const o=$('set').classList.toggle('on');$('bSet').setAttribute('aria-expanded',String(o));fit()});
+$('bHide').addEventListener('click',()=>{$('bar').classList.add('off');$('set').classList.remove('on');fit()});
+document.addEventListener('keydown',e=>{if((e.key==='h'||e.key==='H')&&!(document.activeElement&&document.activeElement.tagName==='INPUT')){$('bar').classList.toggle('off');$('set').classList.remove('on');fit()}});
+$('url').addEventListener('change',()=>{S.url=$('url').value.trim();H.saveS();H.connect()});
+$('transp').addEventListener('change',()=>{S.transp=$('transp').checked;applyUI()});
+$('sh').addEventListener('input',()=>{S.sh=+$('sh').value;$('shV').textContent=S.sh;H.saveS()});
+$('ld').addEventListener('input',()=>{S.lead=+$('ld').value;$('ldV').textContent=S.lead;H.saveS()});
+$('hd').addEventListener('input',()=>{S.hold=+$('hd').value;$('hdV').textContent=S.hold;H.saveS()});
+$('auto').addEventListener('change',()=>{S.auto=$('auto').checked;H.saveS()});
+H.leadSet=v=>{$('ld').value=v;$('ldV').textContent=v};
+$('shTest').addEventListener('click',()=>H.testShift());
+$('mx').addEventListener('click',()=>{H.maxSpd=0;$('mx').textContent='0'});
+H.onStatus((t,ok)=>{$('st').textContent=t;$('dot').className='dot'+(ok?' ok':'')});
+setInterval(()=>$('nodata').classList.toggle('on',H.stale()),400);
+if(location.hash==='#kiosk')$('bar').classList.add('off');
+build(8000);applyUI();H.connect();
+})();
+</script>
+</body>
+</html>

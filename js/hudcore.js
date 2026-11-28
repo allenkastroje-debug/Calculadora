@@ -5,7 +5,8 @@
 var store={get:function(k,d){try{var v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}},
            set:function(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
 var S=Object.assign({u:'kmh',url:'ws://127.0.0.1:8777',transp:false,sh:92,lead:280,auto:true},store.get('bdr-hud2',{}));
-var H={S:S,last:null,lastAt:0,shift:false,rpmShift:null,mode:'fijo',force:0,rate:0,prev:null,tFire:0,maxSpd:0,
+if(!S.v4){S.v4=true;S.lead=300;S.auto=false;S.hold=1200}
+var H={S:S,aids:{spin:false,lock:false,tS:0,tL:0},last:null,lastAt:0,shift:false,rpmShift:null,mode:'fijo',force:0,rate:0,prev:null,tFire:0,fireGear:0,holdUntil:0,maxSpd:0,
        peak:{pow:0,rpm:0,tor:0,boost:0},frame:[],status:[],ord:0};
 var BIN=200,curves=store.get('bdr-hud-curves',{}),cur=null,dirty=false,medCache={},medAt=0;
 
@@ -82,7 +83,11 @@ function decide(m){
   /* predicción: rpm esperadas dentro de "lead" ms (como ForzaShiftTone) */
   var ahead=m.rpm+Math.max(0,H.rate)*S.lead/1000;
   var on=pressing&&(ahead>=rs||(H.shift&&ahead>=rs-150));
-  if(pressing&&(m.rpm>=mx*0.98||m.rpm+Math.max(0,H.rate)*0.1>=mx))on=true; /* tope de rpm */
+  if(pressing&&m.rpm>=mx*0.985)on=true; /* tope de rpm */
+  /* mantener el aviso: una vez encendido sigue "hold" ms (o hasta cambiar de marcha) */
+  var nowd=performance.now();
+  if(on&&!H.shift){H.fireGear=g;H.holdUntil=nowd+(S.hold||0)}
+  if(!on&&H.shift&&g===H.fireGear&&nowd<H.holdUntil&&m.brk<40&&g>0)on=true;
   H.rpmShift=rs;H.mode=mode;
   return on;
 }
@@ -92,6 +97,14 @@ H.setShift=function(on){
 };
 H.testShift=function(){H.force=performance.now()+2000;H.setShift(true);setTimeout(function(){if(performance.now()>=H.force)H.setShift(false)},2100)};
 
+/* ---------- avisos de patinaje / bloqueo (medidos, no son el estado de las ayudas del juego) ---------- */
+var aidEl=null;
+function aidsUI(){
+  if(!aidEl){aidEl=document.createElement('div');aidEl.id='aidsBox';
+    aidEl.style.cssText='position:fixed;right:10px;bottom:8px;display:flex;gap:6px;z-index:5;pointer-events:none;font:600 13px/1 "Saira Condensed",Arial Narrow,sans-serif;letter-spacing:.08em';
+    aidEl.innerHTML='<span style="display:none;background:#FFB020;color:#111;padding:5px 9px;border-radius:5px">PATINAJE</span><span style="display:none;background:#FF3B30;color:#fff;padding:5px 9px;border-radius:5px">BLOQUEO</span>';
+    document.body.appendChild(aidEl)}
+  aidEl.children[0].style.display=H.aids.spin?'block':'none';aidEl.children[1].style.display=H.aids.lock?'block':'none'}
 /* ---------- conexión ---------- */
 var ws=null,retry=null,want=true;
 function status(t,ok){H.status.forEach(function(f){f(t,ok)})}
@@ -107,8 +120,11 @@ H.connect=function(){
     var nowp=performance.now();
     if(H.prev&&m.on){var dtp=(nowp-H.prev.at)/1000;if(dtp>0.005&&dtp<0.5){H.rate=0.7*H.rate+0.3*((m.rpm-H.prev.rpm)/dtp)}}
     if(H.prev&&m.on&&m.gear>H.prev.gear&&H.prev.gear>0&&H.tFire&&S.auto){
-      var gap=nowp-H.tFire;if(gap>80&&gap<1500){S.lead=Math.round(Math.max(100,Math.min(600,0.85*S.lead+0.15*gap)));H.saveS();H.leadSet&&H.leadSet(S.lead)}H.tFire=0}
+      var gap=nowp-H.tFire;if(gap>80&&gap<1500){S.lead=Math.round(Math.max(-300,Math.min(600,0.85*S.lead+0.15*gap)));H.saveS();H.leadSet&&H.leadSet(S.lead)}H.tFire=0}
     H.prev={at:nowp,rpm:m.rpm,gear:m.gear};
+    if(m.on&&m.sr){var mxs=-9,mns=9;for(var q=0;q<4;q++){if(m.sr[q]>mxs)mxs=m.sr[q];if(m.sr[q]<mns)mns=m.sr[q]}
+      if(m.gas>=120&&mxs>0.6&&m.spd>1)H.aids.tS=nowp;if(m.brk>=120&&mns<-0.7&&m.spd>2)H.aids.tL=nowp}
+    H.aids.spin=nowp-H.aids.tS<300;H.aids.lock=nowp-H.aids.tL<300;aidsUI();
     H.last=m;H.lastAt=nowp;status('Recibiendo datos',true);
     if(m.on){
       learn(m);

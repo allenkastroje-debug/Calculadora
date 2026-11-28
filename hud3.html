@@ -65,8 +65,10 @@ svg text{font-family:var(--display);fill:var(--ink)}
   <label>Dirección del receptor<input type="text" id="url" spellcheck="false"></label>
   <label>Aviso sin curva aprendida: <b id="shV">92</b> % de las rpm máximas
     <span class="row"><input type="range" id="sh" min="70" max="100" value="92"><button type="button" id="shTest">Probar aviso</button></span></label>
-  <label>Adelantar el aviso: <b id="ldV">280</b> ms
-    <span class="row"><input type="range" id="ld" min="0" max="600" step="10" value="280"><label style="display:flex;min-width:0;gap:4px;align-items:center"><input type="checkbox" id="auto"> Auto</label></span></label>
+  <label>Adelantar (+) o retrasar (−) el inicio del aviso: <b id="ldV">100</b> ms
+    <span class="row"><input type="range" id="ld" min="-300" max="600" step="10" value="100"><label style="display:flex;min-width:0;gap:4px;align-items:center"><input type="checkbox" id="auto"> Auto</label></span></label>
+  <label>Mantener el aviso: <b id="hdV">1200</b> ms
+    <span class="row"><input type="range" id="hd" min="0" max="3000" step="100" value="1200"></span></label>
   <label><span class="row"><input type="checkbox" id="transp"> Fondo transparente (OBS)</span></label>
   <details id="diag" style="flex-basis:100%"><summary class="st" style="cursor:pointer">Diagnóstico de datos</summary>
     <pre id="dg" style="margin:8px 0 0;font:12px/1.5 var(--mono);color:var(--muted)"></pre>
@@ -189,7 +191,7 @@ $('rsC').addEventListener('click',()=>{if(confirm('¿Olvidar la curva aprendida 
 function applyUI(){
   document.querySelectorAll('[data-u]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.u===S.u)));
   $('url').value=S.url;$('transp').checked=S.transp;document.body.classList.toggle('transp',S.transp);
-  $('sh').value=S.sh;$('shV').textContent=S.sh;$('ld').value=S.lead;$('ldV').textContent=S.lead;$('auto').checked=!!S.auto;H.saveS();fit()}
+  $('sh').value=S.sh;$('shV').textContent=S.sh;$('ld').value=S.lead;$('ldV').textContent=S.lead;$('auto').checked=!!S.auto;$('hd').value=S.hold;$('hdV').textContent=S.hold;H.saveS();fit()}
 document.querySelectorAll('[data-u]').forEach(b=>b.addEventListener('click',()=>{S.u=b.dataset.u;H.maxSpd=0;spMax=0;applyUI()}));
 $('bSet').addEventListener('click',()=>{const o=$('set').classList.toggle('on');$('bSet').setAttribute('aria-expanded',String(o));fit()});
 $('bHide').addEventListener('click',()=>{$('bar').classList.add('off');$('set').classList.remove('on');fit()});
@@ -198,6 +200,7 @@ $('url').addEventListener('change',()=>{S.url=$('url').value.trim();H.saveS();H.
 $('transp').addEventListener('change',()=>{S.transp=$('transp').checked;applyUI()});
 $('sh').addEventListener('input',()=>{S.sh=+$('sh').value;$('shV').textContent=S.sh;H.saveS()});
 $('ld').addEventListener('input',()=>{S.lead=+$('ld').value;$('ldV').textContent=S.lead;H.saveS()});
+$('hd').addEventListener('input',()=>{S.hold=+$('hd').value;$('hdV').textContent=S.hold;H.saveS()});
 $('auto').addEventListener('change',()=>{S.auto=$('auto').checked;H.saveS()});
 H.leadSet=v=>{$('ld').value=v;$('ldV').textContent=v};
 $('shTest').addEventListener('click',()=>H.testShift());
