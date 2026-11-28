@@ -17,6 +17,7 @@ body{background:var(--bg);color:var(--ink);font:14px/1.4 var(--body);display:fle
 body.transp{background:transparent}
 body.shift{--accent:var(--red);background:#2b0707}
 body.shift.transp{background:rgba(120,10,10,.55)}
+body.warn{--accent:#FFE600;background:#241f04}body.warn.transp{background:rgba(120,100,0,.45)}
 button,input{font:inherit;color:inherit}
 button{background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:6px 12px;cursor:pointer}
 button:hover{border-color:var(--muted)}
@@ -69,6 +70,8 @@ svg text{font-family:var(--display);fill:var(--ink)}
     <span class="row"><input type="range" id="ld" min="-300" max="600" step="10" value="100"><label style="display:flex;min-width:0;gap:4px;align-items:center"><input type="checkbox" id="auto"> Auto</label></span></label>
   <label>Mantener el aviso: <b id="hdV">1200</b> ms
     <span class="row"><input type="range" id="hd" min="0" max="3000" step="100" value="1200"></span></label>
+  <label>Pre-aviso amarillo: <b id="prV">800</b> rpm antes del punto ámbar
+    <span class="row"><input type="range" id="pr" min="200" max="2000" step="100" value="800"></span></label>
   <label><span class="row"><input type="checkbox" id="transp"> Fondo transparente (OBS)</span></label>
   <details id="diag" style="flex-basis:100%"><summary class="st" style="cursor:pointer">Diagnóstico de datos</summary>
     <pre id="dg" style="margin:8px 0 0;font:12px/1.5 var(--mono);color:var(--muted)"></pre>
@@ -113,7 +116,7 @@ function botBar(g,cx,label,unit){
   const v=el(g,'text',{x:cx,y:CY+R-59,'text-anchor':'middle','font-size':26,'font-weight':600},'–');
   return{set(fr,txt){f.setAttribute('d',fr>0.004?arc(cx,CY,R-38,62,62+56*Math.min(1,fr)):'');v.textContent=txt}}}
 /* ---------- tacómetro (izquierda) ---------- */
-let tachMax=0,fillL,shM,nT,bBoost,bTor,boostG,boostMax=0,bVal;
+let tachMax=0,fillL,shM,shMW,nT,bBoost,bTor,boostG,boostMax=0,bVal;
 function buildL(mx){
   tachMax=mx;const g=$('gL');g.innerHTML='';bezel(g,LX);
   fillL=el(g,'path',{d:'',fill:'none',stroke:'var(--accent)','stroke-width':7});
@@ -123,6 +126,7 @@ function buildL(mx){
     el(g,'line',{x1:p0[0],y1:p0[1],x2:p1[0],y2:p1[1],stroke:i/n>=0.875?'var(--red)':'var(--ink)','stroke-width':maj?3:1.5});
     if(maj){const q=pt(LX,CY,R-54,a);el(g,'text',{x:q[0],y:q[1]+12,'text-anchor':'middle','font-size':36,'font-weight':700,fill:i/n>=0.875?'var(--red)':'var(--ink)'},String(i/4))}}
   shM=el(g,'path',{d:'',fill:'none',stroke:'var(--amber)','stroke-width':9});
+  shMW=el(g,'path',{d:'',fill:'none',stroke:'#FFE600','stroke-width':9});
   rpmT=el(g,'text',{x:LX,y:CY-84,'text-anchor':'middle','font-size':28,'font-weight':600},'0');
   boostG=el(g,'g',{});bBoost=null;buildBoost(g);bTor=botBar(g,LX,'PAR','N·m');
   $('nL').innerHTML='';nT=el($('nL'),'g',{});
@@ -162,7 +166,7 @@ H.onFrame(function(m){
   const f=Math.max(0,Math.min(1,m.rpm/mx)),ang=A0+SP*f;
   nT.setAttribute('transform','translate('+LX+','+CY+') rotate('+ang.toFixed(2)+')');
   fillL.setAttribute('d',f>0.002?arc(LX,CY,R-4,A0,ang):'');
-  if(H.rpmShift){const a=A0+SP*Math.min(1,H.rpmShift/mx);shM.setAttribute('d',arc(LX,CY,R-4,a-0.9,a+0.9))}
+  if(H.rpmShift){const a=A0+SP*Math.min(1,H.rpmShift/mx);shM.setAttribute('d',arc(LX,CY,R-4,a-0.9,a+0.9));const aw=A0+SP*Math.max(0,Math.min(1,H.warnRpm/mx));shMW.setAttribute('d',arc(LX,CY,R-4,aw-0.9,aw+0.9));}
   rpmT.textContent=Math.round(m.rpm);
   const k=S.u==='mph'?2.23694:3.6,v=m.spd*k,cands=CAND[S.u];
   let want=cands.find(c=>c>=H.maxSpd*1.03)||cands[cands.length-1];if(want!==spMax||!nS)buildR(want);
@@ -191,7 +195,7 @@ $('rsC').addEventListener('click',()=>{if(confirm('¿Olvidar la curva aprendida 
 function applyUI(){
   document.querySelectorAll('[data-u]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.u===S.u)));
   $('url').value=S.url;$('transp').checked=S.transp;document.body.classList.toggle('transp',S.transp);
-  $('sh').value=S.sh;$('shV').textContent=S.sh;$('ld').value=S.lead;$('ldV').textContent=S.lead;$('auto').checked=!!S.auto;$('hd').value=S.hold;$('hdV').textContent=S.hold;H.saveS();fit()}
+  $('sh').value=S.sh;$('shV').textContent=S.sh;$('ld').value=S.lead;$('ldV').textContent=S.lead;$('auto').checked=!!S.auto;$('hd').value=S.hold;$('hdV').textContent=S.hold;$('pr').value=S.pre;$('prV').textContent=S.pre;H.saveS();fit()}
 document.querySelectorAll('[data-u]').forEach(b=>b.addEventListener('click',()=>{S.u=b.dataset.u;H.maxSpd=0;spMax=0;applyUI()}));
 $('bSet').addEventListener('click',()=>{const o=$('set').classList.toggle('on');$('bSet').setAttribute('aria-expanded',String(o));fit()});
 $('bHide').addEventListener('click',()=>{$('bar').classList.add('off');$('set').classList.remove('on');fit()});
@@ -201,6 +205,7 @@ $('transp').addEventListener('change',()=>{S.transp=$('transp').checked;applyUI(
 $('sh').addEventListener('input',()=>{S.sh=+$('sh').value;$('shV').textContent=S.sh;H.saveS()});
 $('ld').addEventListener('input',()=>{S.lead=+$('ld').value;$('ldV').textContent=S.lead;H.saveS()});
 $('hd').addEventListener('input',()=>{S.hold=+$('hd').value;$('hdV').textContent=S.hold;H.saveS()});
+$('pr').addEventListener('input',()=>{S.pre=+$('pr').value;$('prV').textContent=S.pre;H.saveS()});
 $('auto').addEventListener('change',()=>{S.auto=$('auto').checked;H.saveS()});
 H.leadSet=v=>{$('ld').value=v;$('ldV').textContent=v};
 $('shTest').addEventListener('click',()=>H.testShift());

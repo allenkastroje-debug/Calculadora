@@ -17,6 +17,7 @@ body{background:var(--bg);color:var(--ink);font:14px/1.4 var(--body);display:fle
 body.transp{background:transparent}
 body.shift{--accent:var(--red);background:#2b0707}
 body.shift.transp{background:rgba(120,10,10,.55)}
+body.warn{--accent:#FFE600;background:#241f04}body.warn.transp{background:rgba(120,100,0,.45)}
 button,input{font:inherit;color:inherit}
 button{background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:6px 12px;cursor:pointer}
 button:hover{border-color:var(--muted)}
@@ -72,6 +73,8 @@ svg text{font-family:var(--display);fill:var(--ink)}
     <span class="row"><input type="range" id="ld" min="-300" max="600" step="10" value="100"><label style="display:flex;min-width:0;gap:4px;align-items:center"><input type="checkbox" id="auto"> Auto</label></span></label>
   <label>Mantener el aviso: <b id="hdV">1200</b> ms
     <span class="row"><input type="range" id="hd" min="0" max="3000" step="100" value="1200"></span></label>
+  <label>Pre-aviso amarillo: <b id="prV">800</b> rpm antes del punto ámbar
+    <span class="row"><input type="range" id="pr" min="200" max="2000" step="100" value="800"></span></label>
   <label><span class="row"><input type="checkbox" id="transp"> Fondo transparente (OBS)</span></label>
   <details id="diag" style="flex-basis:100%"><summary class="st" style="cursor:pointer">Diagnóstico de datos</summary>
     <pre id="dg" style="margin:8px 0 0;font:12px/1.5 var(--mono);color:var(--muted)"></pre>
@@ -105,7 +108,7 @@ function arc(cx,cy,r,a0,a1){const p0=pt(cx,cy,r,a0),p1=pt(cx,cy,r,a1);return'M'+
 const A0=90,SP=255,CX=508,CY=272,R=190;
 for(const id of ['bL','bB'])for(let i=0;i<10;i++)$(id).appendChild(document.createElement('i'));
 function bars(id,v){const c=$(id).children,n=Math.round(v*10);for(let i=0;i<10;i++)c[i].className=i<n?'on':''}
-let tMax=0,fillA,shM,gearT,rpmT,glow;
+let tMax=0,fillA,shM,shMW,gearT,rpmT,glow;
 function build(mx){
   tMax=mx;const g=$('gT');g.innerHTML='';
   el(g,'circle',{cx:CX,cy:CY,r:R-62,fill:'#0c0f12',stroke:'var(--line)','stroke-width':2});
@@ -117,6 +120,7 @@ function build(mx){
     el(g,'line',{x1:p0[0],y1:p0[1],x2:p1[0],y2:p1[1],stroke:red?'var(--red)':'var(--ink)','stroke-width':maj?3:1.5});
     if(maj){const q=pt(CX,CY,R+34,a);el(g,'text',{x:q[0],y:q[1]+11,'text-anchor':'middle','font-size':32,'font-weight':700,fill:red?'var(--red)':'var(--ink)'},String(i/2))}}
   shM=el(g,'path',{d:'',fill:'none',stroke:'var(--amber)','stroke-width':26});
+  shMW=el(g,'path',{d:'',fill:'none',stroke:'#FFE600','stroke-width':26});
   gearT=el(g,'text',{x:CX,y:CY+48,'text-anchor':'middle','font-size':180,'font-weight':700,style:'fill:var(--accent)'},'–');
   el(g,'text',{x:CX,y:CY+96,'text-anchor':'middle','font-size':16,class:'mut','letter-spacing':'3'},'RPM');
   rpmT=el(g,'text',{x:CX,y:CY+128,'text-anchor':'middle','font-size':34,'font-weight':600},'0')}
@@ -126,7 +130,7 @@ H.onFrame(function(m){
   const mx=Math.ceil((m.rpmMax>0?m.rpmMax:8000)/1000)*1000;if(mx!==tMax)build(mx);
   const f=Math.max(0,Math.min(1,m.rpm/mx)),ang=A0+SP*f;
   fillA.setAttribute('d',f>0.002?arc(CX,CY,R-14,A0,ang):'');
-  if(H.rpmShift){const a=A0+SP*Math.min(1,H.rpmShift/mx);shM.setAttribute('d',arc(CX,CY,R-14,a-1,a+1))}
+  if(H.rpmShift){const a=A0+SP*Math.min(1,H.rpmShift/mx);shM.setAttribute('d',arc(CX,CY,R-14,a-1,a+1));const aw=A0+SP*Math.max(0,Math.min(1,H.warnRpm/mx));shMW.setAttribute('d',arc(CX,CY,R-14,aw-1,aw+1));}
   gearT.textContent=m.gear===0?'R':(m.gear||'–');rpmT.textContent=Math.round(m.rpm);
   const k=S.u==='mph'?2.23694:3.6;
   $('spdV').textContent=Math.round(m.spd*k);$('spdU').textContent=S.u==='mph'?'MPH':'KM/H';$('mx').textContent=Math.round(H.maxSpd);$('mxU').textContent=S.u==='mph'?'mph':'km/h';
@@ -146,7 +150,7 @@ $('rsC').addEventListener('click',()=>{if(confirm('¿Olvidar la curva aprendida 
 function applyUI(){
   document.querySelectorAll('[data-u]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.u===S.u)));
   $('url').value=S.url;$('transp').checked=S.transp;document.body.classList.toggle('transp',S.transp);
-  $('sh').value=S.sh;$('shV').textContent=S.sh;$('ld').value=S.lead;$('ldV').textContent=S.lead;$('auto').checked=!!S.auto;$('hd').value=S.hold;$('hdV').textContent=S.hold;H.saveS();fit()}
+  $('sh').value=S.sh;$('shV').textContent=S.sh;$('ld').value=S.lead;$('ldV').textContent=S.lead;$('auto').checked=!!S.auto;$('hd').value=S.hold;$('hdV').textContent=S.hold;$('pr').value=S.pre;$('prV').textContent=S.pre;H.saveS();fit()}
 document.querySelectorAll('[data-u]').forEach(b=>b.addEventListener('click',()=>{S.u=b.dataset.u;H.maxSpd=0;applyUI()}));
 $('bSet').addEventListener('click',()=>{const o=$('set').classList.toggle('on');$('bSet').setAttribute('aria-expanded',String(o));fit()});
 $('bHide').addEventListener('click',()=>{$('bar').classList.add('off');$('set').classList.remove('on');fit()});
@@ -156,6 +160,7 @@ $('transp').addEventListener('change',()=>{S.transp=$('transp').checked;applyUI(
 $('sh').addEventListener('input',()=>{S.sh=+$('sh').value;$('shV').textContent=S.sh;H.saveS()});
 $('ld').addEventListener('input',()=>{S.lead=+$('ld').value;$('ldV').textContent=S.lead;H.saveS()});
 $('hd').addEventListener('input',()=>{S.hold=+$('hd').value;$('hdV').textContent=S.hold;H.saveS()});
+$('pr').addEventListener('input',()=>{S.pre=+$('pr').value;$('prV').textContent=S.pre;H.saveS()});
 $('auto').addEventListener('change',()=>{S.auto=$('auto').checked;H.saveS()});
 H.leadSet=v=>{$('ld').value=v;$('ldV').textContent=v};
 $('shTest').addEventListener('click',()=>H.testShift());

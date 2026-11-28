@@ -55,3 +55,6 @@ La telemetría de Forza **no** informa si el ABS, el control de tracción o el l
 
 ## Aviso largo y temprano
 El aviso rojo se enciende al detectar que ya conviene cambiar (por defecto 300 ms antes del punto óptimo calculado) y **se mantiene** el tiempo de «Mantener el aviso» (1200 ms por defecto, hasta 3 s). Se apaga antes si ya cambiaste de marcha o frenas fuerte. Ajusta los dos controles en Ajustes.
+
+## Pre-aviso amarillo (todos los HUD)
+Antes del rojo hay una fase amarilla: cuando las rpm llegan a «Pre-aviso amarillo» (800 por defecto) antes del punto ámbar, todo el HUD pasa a amarillo chillón y aparece una marca amarilla en el tacómetro. Al llegar al punto de cambio pasa al rojo. Solo se activa con el acelerador pisado y sin frenar.

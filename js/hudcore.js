@@ -6,6 +6,7 @@ var store={get:function(k,d){try{var v=localStorage.getItem(k);return v?JSON.par
            set:function(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
 var S=Object.assign({u:'kmh',url:'ws://127.0.0.1:8777',transp:false,sh:92,lead:280,auto:true},store.get('bdr-hud2',{}));
 if(!S.v4){S.v4=true;S.lead=300;S.auto=false;S.hold=1200}
+if(!S.v5){S.v5=true;S.pre=800}
 var H={S:S,aids:{spin:false,lock:false,tS:0,tL:0},last:null,lastAt:0,shift:false,rpmShift:null,mode:'fijo',force:0,rate:0,prev:null,tFire:0,fireGear:0,holdUntil:0,maxSpd:0,
        peak:{pow:0,rpm:0,tor:0,boost:0},frame:[],status:[],ord:0};
 var BIN=200,curves=store.get('bdr-hud-curves',{}),cur=null,dirty=false,medCache={},medAt=0;
@@ -91,6 +92,8 @@ function decide(m){
   H.rpmShift=rs;H.mode=mode;
   return on;
 }
+H.warn=false;H.warnRpm=0;
+H.setWarn=function(on){if(on===H.warn)return;H.warn=on;document.body.classList.toggle('warn',on)};
 H.setShift=function(on){
   if(on===H.shift)return;H.shift=on;if(on&&performance.now()>H.force)H.tFire=performance.now();
   document.body.classList.toggle('shift',on);
@@ -130,13 +133,15 @@ H.connect=function(){
       learn(m);
       var v=m.spd*(S.u==='mph'?2.23694:3.6);if(v>H.maxSpd)H.maxSpd=v;
       H.setShift(decide(m)||performance.now()<H.force);
-    }else H.setShift(performance.now()<H.force);
+      H.warnRpm=(H.rpmShift||0)-(S.pre||0);
+      H.setWarn(!H.shift&&m.gas>=100&&m.brk<40&&m.gear>0&&m.rpm>=H.warnRpm);
+    }else{H.setShift(performance.now()<H.force);H.setWarn(false)}
     H.frame.forEach(function(f){f(m)});
   };
   w.onclose=function(){if(ws===w){ws=null;status('Sin conexión · reintentando',false);if(want)retry=setTimeout(H.connect,2000)}};
   w.onerror=function(){};
 };
 H.stale=function(){return !H.last||performance.now()-H.lastAt>2500};
-setInterval(function(){if(H.stale())H.setShift(performance.now()<H.force)},400);
+setInterval(function(){if(H.stale()){H.setShift(performance.now()<H.force);H.setWarn(false)}},400);
 window.HUD=H;
 })();
